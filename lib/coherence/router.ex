@@ -27,14 +27,19 @@ defmodule Coherence.Router do
   this case, you can have one pipeline, one scope and call `coherence_routes :all`.
   In this case, it will add both the public and protected routes.
   """
+  defmacro __using__(_opts \\ []) do
+    quote do
+      import unquote(__MODULE__)
+    end
+  end
 
   @doc """
-  Coherence Routes.
+  Coherence routes macro.
 
   Use this function to define login/logout routes.
   All other coherence routes are handled in front-end.
   """
-  def coherence_routes() do
+  defmacro coherence_routes() do
     if Coherence.Config.has_action?(:authenticatable, :create), do:
     post "/login", Coherence.SessionController, :create
 
