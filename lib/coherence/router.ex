@@ -40,10 +40,12 @@ defmodule Coherence.Router do
   All other coherence routes are handled in front-end.
   """
   defmacro coherence_routes() do
-    if Coherence.Config.has_action?(:authenticatable, :create), do:
-    post "/login", Coherence.SessionController, :create
+    quote do
+      if Coherence.Config.has_action?(:authenticatable, :create), do:
+      post "/login", Coherence.SessionController, :create
 
-    if Coherence.Config.has_action?(:authenticatable, :delete), do:
-    post "/logout", Coherence.SessionController, :delete
+      if Coherence.Config.has_action?(:authenticatable, :delete), do:
+      post "/logout", Coherence.SessionController, :delete
+    end
   end
 end
