@@ -63,7 +63,7 @@ defmodule Coherence.Controller do
   """
   @spec logged_out_url(Plug.Conn.t) :: String.t
   def logged_out_url(conn) do
-    Config.logged_out_url || router_helpers().page_path(conn, :index)
+    Config.logged_out_url || "/"
   end
 
   @doc """
