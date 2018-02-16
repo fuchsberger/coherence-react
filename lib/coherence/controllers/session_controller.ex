@@ -1,4 +1,4 @@
-defmodule Coherence.SessionController do
+defmodule Coherence.PageController do
   @moduledoc """
   Handle the authentication actions.
 
@@ -36,7 +36,7 @@ defmodule Coherence.SessionController do
   def index(conn, _params) do
     login_field = Config.login_field()
     conn
-    |> put_view(Module.concat(Config.web_module, Coherence.SessionView))
+    |> put_view(Module.concat(Config.web_module, Coherence.PageView))
     |> render(:index, [{login_field, ""}, remember: rememberable_enabled?()])
   end
 
