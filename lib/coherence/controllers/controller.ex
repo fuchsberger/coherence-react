@@ -62,7 +62,7 @@ defmodule Coherence.Controller do
   Get the configured logged_out_url.
   """
   @spec logged_out_url(Plug.Conn.t) :: String.t
-  def logged_out_url(conn) do
+  def logged_out_url(_conn) do
     Config.logged_out_url || "/"
   end
 
