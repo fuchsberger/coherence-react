@@ -13,11 +13,13 @@ defmodule Responders.Html do
         conn
         |> put_flash(:error, error)
         |> put_status(406)
+        |> put_view(Module.concat(Config.web_module, Coherence.PageView))
         |> render(:index, new_bindings)
       end
       def session_create_error(conn, %{new_bindings: new_bindings}) do
         conn
         |> put_status(401)
+        |> put_view(Module.concat(Config.web_module, Coherence.PageView))
         |> render(:index, new_bindings)
       end
 
@@ -33,6 +35,7 @@ defmodule Responders.Html do
         conn
         |> put_flash(:error, error)
         |> put_status(423)
+        |> put_view(Module.concat(Config.web_module, Coherence.PageView))
         |> render(:index, params)
       end
 
