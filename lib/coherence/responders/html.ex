@@ -50,7 +50,7 @@ defmodule Responders.Html do
       def session_already_logged_in(conn, %{info: info}) do
         conn
         |> put_flash(:info, info)
-        |> redirect(to: logged_in_url(conn))
+        |> redirect(to: logged_in_url())
         |> halt
       end
 
