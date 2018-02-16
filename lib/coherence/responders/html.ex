@@ -10,17 +10,19 @@ defmodule Responders.Html do
 
       alias Coherence.Config
 
+      @PageView Module.concat(Config.web_module, PageView)
+
       def session_create_error(conn, opts \\ %{})
       def session_create_error(conn, %{new_bindings: new_bindings, error: error}) do
         conn
         |> put_flash(:error, error)
         |> put_status(406)
-        |> render(Module.concat(Config.web_module, PageView), :index, new_bindings)
+        |> render(@PageView, :index, new_bindings)
       end
       def session_create_error(conn, %{new_bindings: new_bindings}) do
         conn
         |> put_status(401)
-        |> render(Module.concat(Config.web_module, PageView), :index, new_bindings)
+        |> render(@PageView, :index, new_bindings)
       end
 
       def session_create_success(conn, opts \\ %{})
@@ -35,7 +37,7 @@ defmodule Responders.Html do
         conn
         |> put_flash(:error, error)
         |> put_status(423)
-        |> render(:index, params)
+        |> render(@PageView, :index, params)
       end
 
       def session_delete_success(conn, opts \\ %{})
