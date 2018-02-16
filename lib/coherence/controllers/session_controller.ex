@@ -1,4 +1,4 @@
-defmodule Coherence.PageController do
+defmodule Coherence.SessionController do
   @moduledoc """
   Handle the authentication actions.
 
