@@ -13,12 +13,12 @@ defmodule Responders.Html do
         conn
         |> put_flash(:error, error)
         |> put_status(406)
-        |> render(:new, new_bindings)
+        |> render(:index, new_bindings)
       end
       def session_create_error(conn, %{new_bindings: new_bindings}) do
         conn
         |> put_status(401)
-        |> render(:new, new_bindings)
+        |> render(:index, new_bindings)
       end
 
       def session_create_success(conn, opts \\ %{})
@@ -33,7 +33,7 @@ defmodule Responders.Html do
         conn
         |> put_flash(:error, error)
         |> put_status(423)
-        |> render(:new, params)
+        |> render(:index, params)
       end
 
       def session_delete_success(conn, opts \\ %{})

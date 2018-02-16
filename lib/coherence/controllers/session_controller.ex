@@ -30,6 +30,17 @@ defmodule Coherence.SessionController do
   def login_cookie, do: "coherence_login"
 
   @doc """
+  Render the default page.
+  """
+  @spec index(conn, params) :: conn
+  def index(conn, _params) do
+    login_field = Config.login_field()
+    conn
+    |> put_view(Module.concat(Config.web_module, Coherence.SessionView))
+    |> render(:index, [{login_field, ""}, remember: rememberable_enabled?()])
+  end
+
+  @doc """
   Retrieve the login cookie.
   """
   @spec get_login_cookie(conn) :: String.t
@@ -39,17 +50,6 @@ defmodule Coherence.SessionController do
 
   defp rememberable_enabled? do
     if Config.user_schema.rememberable?(), do: true, else: false
-  end
-
-  @doc """
-  Render the login form.
-  """
-  @spec new(conn, params) :: conn
-  def new(conn, _params) do
-    login_field = Config.login_field()
-    conn
-    |> put_view(Module.concat(Config.web_module, Coherence.SessionView))
-    |> render(:new, [{login_field, ""}, remember: rememberable_enabled?()])
   end
 
   @doc """

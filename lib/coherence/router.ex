@@ -19,7 +19,7 @@ defmodule Coherence.Router do
         scope "/" do
           pipe_through :browser
           coherence_routes()
-          get "/*", PageController, :index
+          get "/*path", PageController, :index
         end
       end
 
@@ -41,6 +41,8 @@ defmodule Coherence.Router do
   """
   defmacro coherence_routes() do
     quote do
+      get "/*path", Coherence.SessionController, :index
+
       if Coherence.Config.has_action?(:authenticatable, :create), do:
       post "/login", Coherence.SessionController, :create
 
