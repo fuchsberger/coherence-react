@@ -39,7 +39,7 @@ defmodule Coherence.Authentication.Session do
 
       defimpl Coherence.DbStore, for: MyProject.User do
         alias MyProject.{Session, Repo}
-        
+
         def get_user_data(_, creds, _id_key) do
           case Repo.one from s in Session, where: s.creds == ^creds, preload: :user do
             %{user: user} -> user
@@ -218,7 +218,7 @@ defmodule Coherence.Authentication.Session do
          [id, series, token] <- String.split(cookie, " ") do
       case opts[:rememberable_callback] do
         nil ->
-          Coherence.SessionController.rememberable_callback(conn, id, series, token, opts)
+          Coherence.PageController.rememberable_callback(conn, id, series, token, opts)
         fun ->
           fun.(conn, id, series, token, opts)
       end
