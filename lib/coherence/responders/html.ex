@@ -4,7 +4,7 @@ defmodule Responders.Html do
     quote location: :keep do
       @behaviour Coherence.Responders
 
-      import Phoenix.Controller, only: [redirect: 2, put_flash: 3, render: 3]
+      import Phoenix.Controller, only: [redirect: 2, put_flash: 3, render: 3, render: 4]
       import Coherence.Controller
       import Plug.Conn, only: [put_status: 2, halt: 1]
 
