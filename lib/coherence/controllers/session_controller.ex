@@ -22,8 +22,8 @@ defmodule Coherence.SessionController do
   @type conn :: Plug.Conn.t
   @type params :: Map.t
 
-  plug :layout_view, view: Coherence.SessionView, caller: __MODULE__
-  plug :redirect_logged_in when action in [:new, :create]
+  # plug :layout_view, view: Coherence.SessionView, caller: __MODULE__
+  plug :redirect_logged_in when action in [:create]
 
   @doc false
   @spec login_cookie() :: String.t
