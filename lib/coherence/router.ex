@@ -42,10 +42,10 @@ defmodule Coherence.Router do
   defmacro coherence_routes() do
     quote do
       if Coherence.Config.has_action?(:authenticatable, :create), do:
-      post "/login", Coherence.PageController, :login
+      post "/login", Coherence.SessionController, :create
 
       if Coherence.Config.has_action?(:authenticatable, :delete), do:
-      post "/logout", Coherence.PageController, :logout
+      post "/logout", Coherence.SessionController, :delete
     end
   end
 end

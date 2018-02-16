@@ -59,8 +59,8 @@ defmodule Coherence.SessionController do
   If the rememberable option is enabled, create a new series and rememberable token,
   create a new cookie and update the database.
   """
-  @spec login(conn, params) :: conn
-  def login(conn, params) do
+  @spec create(conn, params) :: conn
+  def create(conn, params) do
     user_schema = Config.user_schema()
     lockable? = user_schema.lockable?()
     login_field = Config.login_field()
@@ -145,8 +145,8 @@ defmodule Coherence.SessionController do
 
   Delete the user's session, track the logout and delete the rememberable cookie.
   """
-  @spec logout(conn, params) :: conn
-  def logout(conn, params) do
+  @spec delete(conn, params) :: conn
+  def delete(conn, params) do
     conn
     |> logout_user
     |> respond_with(:session_delete_success, %{params: params})
