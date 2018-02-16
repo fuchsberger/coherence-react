@@ -30,17 +30,6 @@ defmodule Coherence.PageController do
   def login_cookie, do: "coherence_login"
 
   @doc """
-  Render the default page.
-  """
-  @spec index(conn, params) :: conn
-  def index(conn, _params) do
-    login_field = Config.login_field()
-    conn
-    |> put_view(Module.concat(Config.web_module, Coherence.PageView))
-    |> render(:index, [{login_field, ""}, remember: rememberable_enabled?()])
-  end
-
-  @doc """
   Retrieve the login cookie.
   """
   @spec get_login_cookie(conn) :: String.t

@@ -41,8 +41,6 @@ defmodule Coherence.Router do
   """
   defmacro coherence_routes() do
     quote do
-      get "/*path", Coherence.PageController, :index
-
       if Coherence.Config.has_action?(:authenticatable, :create), do:
       post "/login", Coherence.PageController, :login
 

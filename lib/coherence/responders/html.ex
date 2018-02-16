@@ -6,20 +6,18 @@ defmodule Responders.Html do
 
       import Phoenix.Controller, only: [redirect: 2, put_flash: 3, render: 3]
       import Coherence.Controller
-      import Plug.Conn, only: [put_status: 2, put_view: 2, halt: 1]
+      import Plug.Conn, only: [put_status: 2, halt: 1]
 
       def session_create_error(conn, opts \\ %{})
       def session_create_error(conn, %{new_bindings: new_bindings, error: error}) do
         conn
         |> put_flash(:error, error)
         |> put_status(406)
-        |> put_view(Module.concat(Config.web_module, Coherence.PageView))
         |> render(:index, new_bindings)
       end
       def session_create_error(conn, %{new_bindings: new_bindings}) do
         conn
         |> put_status(401)
-        |> put_view(Module.concat(Config.web_module, Coherence.PageView))
         |> render(:index, new_bindings)
       end
 
@@ -35,7 +33,6 @@ defmodule Responders.Html do
         conn
         |> put_flash(:error, error)
         |> put_status(423)
-        |> put_view(Module.concat(Config.web_module, Coherence.PageView))
         |> render(:index, params)
       end
 

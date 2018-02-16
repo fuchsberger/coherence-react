@@ -218,7 +218,7 @@ defmodule Coherence.Authentication.Session do
          [id, series, token] <- String.split(cookie, " ") do
       case opts[:rememberable_callback] do
         nil ->
-          Coherence.PageController.rememberable_callback(conn, id, series, token, opts)
+          Coherence.SessionController.rememberable_callback(conn, id, series, token, opts)
         fun ->
           fun.(conn, id, series, token, opts)
       end
