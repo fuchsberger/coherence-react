@@ -260,7 +260,7 @@ defmodule <%= web_base %>.Coherence.SessionController do
         conn
         |> delete_req_header(opts[:login_key])
         |> put_flash(:error, Messages.backend().you_are_using_an_invalid_security_token())
-        |> redirect(to: logged_out_url(conn))
+        |> redirect(to: logged_out_url())
         |> halt
     end
   end

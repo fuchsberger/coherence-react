@@ -36,6 +36,6 @@
 
   <div class="form-group">
     <%= submit "Create", class: "btn btn-primary" %>
-    <%= link "Cancel", to: Coherence.Config.logged_out_url("/"), class: "btn" %>
+    <%= link "Cancel", to: Coherence.Config.logged_out_url(), class: "btn" %>
   </div>
 <% end %>

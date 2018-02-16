@@ -97,7 +97,7 @@ defmodule <%= web_base %>.Coherence.PasswordController do
       nil ->
         conn
         |> put_flash(:error, Messages.backend().invalid_reset_token())
-        |> redirect(to: logged_out_url(conn))
+        |> redirect(to: logged_out_url())
       user ->
         if expired? user.reset_password_sent_at, days: Config.reset_token_expire_days do
           :password
@@ -106,7 +106,7 @@ defmodule <%= web_base %>.Coherence.PasswordController do
 
           conn
           |> put_flash(:error, Messages.backend().password_reset_token_expired())
-          |> redirect(to: logged_out_url(conn))
+          |> redirect(to: logged_out_url())
         else
           changeset = Controller.changeset(:password, user_schema, user)
           render(conn, "edit.html", changeset: changeset)

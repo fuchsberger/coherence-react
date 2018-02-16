@@ -18,7 +18,7 @@
 
   <div class="form-group">
     <%%= submit dgettext("coherence", "Send Invitation"), class: "btn btn-primary" %>
-    <%%= link dgettext("coherence", "Cancel"), to: Coherence.Config.logged_out_url("/"), class: "btn" %>
+    <%%= link dgettext("coherence", "Cancel"), to: Coherence.Config.logged_out_url(), class: "btn" %>
     <%%= if invitation = @conn.assigns[:invitation] do %>
       <%%= link dgettext("coherence", "Resend Invitation!"), to: invitation_path(@conn, :resend, invitation.id), class: "btn" %>
     <%% end %>

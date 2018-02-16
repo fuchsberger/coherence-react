@@ -20,6 +20,6 @@
 
   <div class="form-group">
     <%= submit "Send Invitation", class: "btn btn-primary" %>
-    <%= link "Cancel", to: Coherence.Config.logged_out_url("/"), class: "btn" %>
+    <%= link "Cancel", to: Coherence.Config.logged_out_url(), class: "btn" %>
   </div>
 <% end %>

@@ -202,7 +202,7 @@ defmodule Responders.Html do
       def password_update_error(conn, %{error: error}) do
         conn
         |> put_flash(:error, error)
-        |> redirect(to: logged_out_url(conn))
+        |> redirect(to: logged_out_url())
       end
       def password_update_error(conn, %{changeset: changeset}) do
         conn
@@ -246,7 +246,7 @@ defmodule Responders.Html do
       def invitation_create_user_error(conn, %{error: error}) do
         conn
         |> put_flash(:error, error)
-        |> redirect(to: logged_out_url(conn))
+        |> redirect(to: logged_out_url())
       end
       def invitation_create_user_error(conn, %{changeset: changeset, token: token}) do
         conn
@@ -256,7 +256,7 @@ defmodule Responders.Html do
       def invitation_create_user_success(conn, opts \\ %{})
       def invitation_create_user_success(conn, %{}) do
         conn
-        |> redirect(to: logged_out_url(conn))
+        |> redirect(to: logged_out_url())
       end
 
       defoverridable [

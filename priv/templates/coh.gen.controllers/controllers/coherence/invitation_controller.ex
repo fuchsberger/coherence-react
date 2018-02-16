@@ -103,7 +103,7 @@ defmodule <%= web_base %>.Coherence.InvitationController do
       nil ->
         conn
         |> put_flash(:error, Messages.backend().invalid_invitation_token())
-        |> redirect(to: logged_out_url(conn))
+        |> redirect(to: logged_out_url())
       invite ->
         user_schema = Config.user_schema
         changeset = Controller.changeset(:invitation, user_schema, user_schema.__struct__,
