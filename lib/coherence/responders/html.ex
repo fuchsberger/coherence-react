@@ -15,12 +15,12 @@ defmodule Responders.Html do
         conn
         |> put_flash(:error, error)
         |> put_status(406)
-        |> render(Config.web_module.PageView, :index, new_bindings)
+        |> render(Module.concat(Config.web_module, PageView), :index, new_bindings)
       end
       def session_create_error(conn, %{new_bindings: new_bindings}) do
         conn
         |> put_status(401)
-        |> render(Config.web_module.PageView, :index, new_bindings)
+        |> render(Module.concat(Config.web_module, PageView), :index, new_bindings)
       end
 
       def session_create_success(conn, opts \\ %{})
