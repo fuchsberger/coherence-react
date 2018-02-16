@@ -61,16 +61,16 @@ defmodule Coherence.Controller do
   @doc """
   Get the configured logged_out_url.
   """
-  @spec logged_out_url(Plug.Conn.t) :: String.t
-  def logged_out_url(_conn) do
+  @spec logged_out_url() :: String.t
+  def logged_out_url() do
     Config.logged_out_url || "/"
   end
 
   @doc """
   Get the configured logged_in_url.
   """
-  @spec logged_in_url(Plug.Conn.t) :: String.t
-  def logged_in_url(_conn) do
+  @spec logged_in_url() :: String.t
+  def logged_in_url() do
     Config.logged_in_url || "/"
   end
 
