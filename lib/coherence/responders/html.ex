@@ -8,17 +8,19 @@ defmodule Responders.Html do
       import Coherence.Controller
       import Plug.Conn, only: [put_status: 2, halt: 1]
 
+      alias Coherence.Config
+
       def session_create_error(conn, opts \\ %{})
       def session_create_error(conn, %{new_bindings: new_bindings, error: error}) do
         conn
         |> put_flash(:error, error)
         |> put_status(406)
-        |> render(:index, new_bindings)
+        |> render(Config.web_module.PageView, :index, new_bindings)
       end
       def session_create_error(conn, %{new_bindings: new_bindings}) do
         conn
         |> put_status(401)
-        |> render(:index, new_bindings)
+        |> render(Config.web_module.PageView, :index, new_bindings)
       end
 
       def session_create_success(conn, opts \\ %{})
