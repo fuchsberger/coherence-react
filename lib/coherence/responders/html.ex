@@ -6,7 +6,7 @@ defmodule Responders.Html do
 
       import Phoenix.Controller, only: [redirect: 2, put_flash: 3, render: 3]
       import Coherence.Controller
-      import Plug.Conn, only: [put_status: 2, halt: 1]
+      import Plug.Conn, only: [put_status: 2, put_view: 2, halt: 1]
 
       def session_create_error(conn, opts \\ %{})
       def session_create_error(conn, %{new_bindings: new_bindings, error: error}) do
