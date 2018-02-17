@@ -9,8 +9,6 @@ defmodule Coherence.Controller do
 
   require Logger
 
-  @endpoint Module.concat(Config.web_module, Endpoint)
-
   @type schema :: Ecto.Schema.t
   @type changeset :: Ecto.Changeset.t
   @type schema_or_error :: schema | {:error, changeset}
@@ -203,25 +201,6 @@ defmodule Coherence.Controller do
       end
     else
       {:ok, Messages.backend().registration_created_successfully() }
-    end
-  end
-
-  #############
-  # User Schema
-
-  @doc """
-  Confirm a user account.
-
-  Adds the `:confirmed_at` datetime field on the user model and updates the database
-  """
-  @spec confirm!(Ecto.Schema.t) :: schema_or_error
-  def confirm!(user) do
-    changeset = ConfirmableService.confirm(user)
-    if ConfirmableService.confirmed? user do
-      changeset = Ecto.Changeset.add_error changeset, :confirmed_at, Messages.backend().already_confirmed()
-      {:error, changeset}
-    else
-      Config.repo.update changeset
     end
   end
 

@@ -11,17 +11,6 @@ defmodule CoherenceTest.Controller do
       :confirmable, :invitable, :registerable]
   end
 
-  test "confirm!" do
-    user = insert_user()
-    refute User.confirmed?(user)
-    {:ok, user} = Controller.confirm!(user)
-    assert User.confirmed?(user)
-
-    {:error, changeset} = Controller.confirm!(user)
-    refute changeset.valid?
-    assert changeset.errors == [confirmed_at: {"already confirmed", []}]
-  end
-
   test "lock!" do
     user = insert_user()
     refute User.locked?(user)
