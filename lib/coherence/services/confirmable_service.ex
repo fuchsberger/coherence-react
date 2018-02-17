@@ -127,7 +127,6 @@ defmodule Coherence.ConfirmableService do
       token = random_string 48
       url = confirmation_url(token)
       dt = NaiveDateTime.utc_now()
-      Logger.debug "confirmation email url: #{inspect url}"
       user
       |> user_schema.changeset(%{
           confirmation_token: token,
