@@ -120,11 +120,11 @@ defmodule Coherence.ConfirmableService do
   Resends a confirmation email with a new token to the account with given email
   """
   def confirm_account(socket, params) do
-    validation_errors = error_map(User.changeset(%User{}, params, :email))
+    user_schema = Config.user_schema
+    validation_errors = error_map(user_schema.changeset(%user_schema{}, params, :email))
     if Map.has_key?(validation_errors, :email) do
       {:reply, {:error, %{ errors: validation_errors }}, socket}
     else
-      user_schema = Config.user_schema
       case Schemas.get_user_by_email params["email"] do
         nil ->
           {:reply, {:error, %{
@@ -178,6 +178,36 @@ defmodule Coherence.ConfirmableService do
               }}, socket}
           end
         end
+    end
+  end
+
+  @doc """
+  Generates a map with all invalid fields and their first error
+  """
+  def error_map(changeset), do:
+    Map.new(changeset.errors, fn ({k, v}) -> {k, translate_error(v)} end)
+
+  @doc """
+  Translates an error message using gettext.
+  """
+  def translate_error({msg, opts}) do
+    # Because error messages were defined within Ecto, we must
+    # call the Gettext module passing our Gettext backend. We
+    # also use the "errors" domain as translations are placed
+    # in the errors.po file.
+    # Ecto will pass the :count keyword if the error message is
+    # meant to be pluralized.
+    # On your own code and templates, depending on whether you
+    # need the message to be pluralized or not, this could be
+    # written simply as:
+    #
+    #     dngettext "errors", "1 file", "%{count} files", count
+    #     dgettext "errors", "is invalid"
+    #
+    if count = opts[:count] do
+      Gettext.dngettext("default", "errors", msg, msg, count, opts)
+    else
+      Gettext.dgettext("default", "errors", msg, opts)
     end
   end
 end
