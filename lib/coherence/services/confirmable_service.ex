@@ -69,6 +69,11 @@ defmodule Coherence.ConfirmableService do
     end
   end
 
+  # get the configured confirm account url (requires token)
+  @spec confirmation_url(String.t) :: String.t
+  defp confirmation_url(token), do:
+    Config.url_base <> Config.confirmation_url <> "/" <> token
+
   @doc """
   Checks if the user has been confirmed.
 
@@ -125,7 +130,6 @@ defmodule Coherence.ConfirmableService do
     user_schema = Config.user_schema
     if user_schema.confirmable? do
       token = random_string 48
-      url = confirmation_url(token)
       dt = NaiveDateTime.utc_now()
       user
       |> user_schema.changeset(%{

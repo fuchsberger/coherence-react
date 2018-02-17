@@ -32,13 +32,6 @@ defmodule Coherence.Controller do
   end
 
   @doc """
-  Get the configured confirm account url (requires token)
-  """
-  @spec confirmation_url(String.t) :: String.t
-  def confirmation_url(token), do:
-    Config.url_base <> Config.confirmation_url <> "/" <> token
-
-  @doc """
   Get the configured password reset url (requires token)
   """
   @spec password_url(String.t) :: String.t
