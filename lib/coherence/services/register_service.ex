@@ -1,7 +1,12 @@
 defmodule Coherence.RegisterService do
 
+  use Coherence.Config
+  use CoherenceWeb, :service
+
   import Coherence.TrackableService
   import Coherence.Authentication.Utils, only: [error_map: 1]
+
+  alias Coherence.{Messages, Schemas}
 
   @doc """
   Allows to change password, email or name though the /settings page
