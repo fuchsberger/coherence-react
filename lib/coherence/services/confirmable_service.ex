@@ -121,7 +121,7 @@ defmodule Coherence.ConfirmableService do
   """
   def confirm_account(socket, params) do
     user_schema = Config.user_schema
-    validation_errors = error_map(user_schema.changeset(%user_schema{}, params, :email))
+    validation_errors = error_map(user_schema.changeset(%User{}, params, :email))
     if Map.has_key?(validation_errors, :email) do
       {:reply, {:error, %{ errors: validation_errors }}, socket}
     else
