@@ -80,6 +80,7 @@ defmodule Coherence.Config do
     :repo,
     :user_schema,
     :schema_key,
+    :url_base,
     :logged_out_url,
     :logged_in_url,
     {:confirmation_url, "/account/confirm"},

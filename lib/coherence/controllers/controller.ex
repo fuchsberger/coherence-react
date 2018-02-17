@@ -2,7 +2,7 @@ defmodule Coherence.Controller do
   @moduledoc """
   Common helper functions for Coherence Controllers.
   """
-  import Phoenix.Controller, only: [put_flash: 3, put_layout: 2, put_view: 2]
+  import Phoenix.Controller, only: [put_layout: 2, put_view: 2]
 
   alias Coherence.{ConfirmableService, RememberableService, TrackableService, Messages}
   alias Coherence.{Config, Schemas}
@@ -38,14 +38,14 @@ defmodule Coherence.Controller do
   """
   @spec confirmation_url(String.t) :: String.t
   def confirmation_url(token), do:
-    @endpoint.url <> Config.confirmation_url <> "/" <> token
+    Config.url_base <> Config.confirmation_url <> "/" <> token
 
   @doc """
   Get the configured password reset url (requires token)
   """
   @spec password_url(String.t) :: String.t
   def password_url(token), do:
-    @endpoint.url <> Config.password_url <> "/" <> token
+    Config.url_base <> Config.password_url <> "/" <> token
 
   @doc """
   Put LayoutView
