@@ -164,40 +164,40 @@ defmodule Coherence.TrackableService do
     conn
   end
 
-  @spec track_password_reset(conn, schema, boolean) :: conn
-  def track_password_reset(conn, _user, false),
-    do: conn
-  def track_password_reset(conn, user, true),
-    do: track(conn, user, "password_reset")
+  @spec track_password_reset(schema, boolean)
+  def track_password_reset(_user, false), do: nil
+  def track_password_reset( user, true),  do: track(user, "password_reset")
 
   @spec track_failed_login(conn, schema, boolean) :: conn
-  def track_failed_login(conn, %{} = user, true),
-    do: track(conn, user, "failed_login")
-  def track_failed_login(conn, _user, _),
-    do: conn
+  def track_failed_login(conn, %{} = user, true) do
+    track(user, "failed_login")
+    conn
+  end
+  def track_failed_login(conn, _user, _), do: conn
 
   @spec track_lock(conn, schema, boolean) :: conn
-  def track_lock(conn, _user, false),
-    do: conn
-  def track_lock(conn, user, true),
-    do: track(conn, user, "lock")
+  def track_lock(conn, _user, false), do: conn
+  def track_lock(conn, user, true) do
+    track(user, "lock")
+    conn
+  end
 
   @spec track_unlock(conn, schema, boolean) :: conn
-  def track_unlock(conn, _user, false),
-    do: conn
-  def track_unlock(conn, user, true),
-    do: track(conn, user, "unlock")
-
+  def track_unlock(conn, _user, false), do: conn
+  def track_unlock(conn, user, true) do
+    track(user, "unlock")
+    conn
+  end
   @spec track_unlock_token(conn, schema, boolean) :: conn
-  def track_unlock_token(conn, _user, false),
-    do: conn
-  def track_unlock_token(conn, user, true),
-    do: track(conn, user, "unlock_token")
-
+  def track_unlock_token(conn, _user, false), do: conn
+  def track_unlock_token(conn, user, true) do
+    track(user, "unlock_token")
+    conn
+  end
   ##############
   # Private
 
-  def track(conn, user, action) do
+  defp track(user, action) do
     trackable = last_trackable(user.id)
     schema = schema Trackable
     changeset = Controller.changeset(:session, schema, schema.__struct__,
@@ -209,7 +209,6 @@ defmodule Coherence.TrackableService do
         user_id: user.id
       })
     Schemas.create! changeset
-    conn
   end
 
   defp last_at_and_ip(conn, schema) do
