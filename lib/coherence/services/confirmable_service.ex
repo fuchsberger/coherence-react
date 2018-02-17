@@ -126,7 +126,7 @@ defmodule Coherence.ConfirmableService do
   Send confirmation email with token.
   If the user supports confirmable, generate a token and send the email.
   """
-  @spec send_confirmation(schema) :: map
+  @spec send_confirmation(Ecto.Schema.t) :: map
   def send_confirmation(user) do
     user_schema = Config.user_schema
     if user_schema.confirmable? do
