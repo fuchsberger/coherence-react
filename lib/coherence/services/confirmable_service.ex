@@ -117,6 +117,37 @@ defmodule Coherence.ConfirmableService do
   end
 
   @doc """
+  Send confirmation email with token.
+  If the user supports confirmable, generate a token and send the email.
+  """
+  @spec send_confirmation(schema) :: map
+  def send_confirmation(user) do
+    user_schema = Config.user_schema
+    if user_schema.confirmable? do
+      token = random_string 48
+      url = confirmation_url(token)
+      dt = NaiveDateTime.utc_now()
+      Logger.debug "confirmation email url: #{inspect url}"
+      user
+      |> user_schema.changeset(%{
+          confirmation_token: token,
+          confirmation_sent_at: dt,
+          current_password: user.password
+        })
+      |> Config.repo.update!
+
+      if Config.mailer?() do
+        send_user_email :confirmation, user, confirmation_url(token)
+        {:ok, Messages.backend().confirmation_email_sent() }
+      else
+        {:error, Messages.backend().mailer_required() }
+      end
+    else
+      {:ok, Messages.backend().registration_created_successfully() }
+    end
+  end
+
+  @doc """
   Resends a confirmation email with a new token to the account with given email
   """
   def confirm_account(socket, params) do
@@ -136,7 +167,7 @@ defmodule Coherence.ConfirmableService do
               flash: Messages.backend().account_already_confirmed() }
             }, socket}
           else
-            case send_confirmation(user, user_schema) do
+            case send_confirmation(user) do
               {:ok, flash}    -> {:reply, {:ok,    %{ flash: flash }}, socket}
               {:error, flash} -> {:reply, {:error, %{ flash: flash }}, socket}
             end

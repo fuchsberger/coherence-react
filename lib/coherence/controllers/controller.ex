@@ -175,36 +175,6 @@ defmodule Coherence.Controller do
   end
 
   @doc """
-  Send confirmation email with token.
-  If the user supports confirmable, generate a token and send the email.
-  """
-  @spec send_confirmation(schema, struct) :: map
-  def send_confirmation(user, user_schema) do
-    if user_schema.confirmable? do
-      token = random_string 48
-      url = confirmation_url(token)
-      dt = NaiveDateTime.utc_now()
-      Logger.debug "confirmation email url: #{inspect url}"
-      user
-      |> user_schema.changeset(%{
-          confirmation_token: token,
-          confirmation_sent_at: dt,
-          current_password: user.password
-        })
-      |> Config.repo.update!
-
-      if Config.mailer?() do
-        send_user_email :confirmation, user, confirmation_url(token)
-        {:ok, Messages.backend().confirmation_email_sent() }
-      else
-        {:error, Messages.backend().mailer_required() }
-      end
-    else
-      {:ok, Messages.backend().registration_created_successfully() }
-    end
-  end
-
-  @doc """
   Lock a use account.
 
   Sets the `:locked_at` field on the user model to the current date and time unless
