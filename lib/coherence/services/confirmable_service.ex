@@ -120,6 +120,7 @@ defmodule Coherence.ConfirmableService do
   Resends a confirmation email with a new token to the account with given email
   """
   def confirm_account(socket, params) do
+    user_schema = Config.user_schema
     validation_errors = error_map(user_schema.changeset(params, :email))
     if Map.has_key?(validation_errors, :email) do
       {:reply, {:error, %{ errors: validation_errors }}, socket}
@@ -130,7 +131,6 @@ defmodule Coherence.ConfirmableService do
             flash: Messages.backend().could_not_find_that_email_address()
           }}, socket}
         user ->
-          user_schema = Config.user_schema
           if user_schema.confirmed?(user) do
             {:reply, {:error, %{
               flash: Messages.backend().account_already_confirmed() }
