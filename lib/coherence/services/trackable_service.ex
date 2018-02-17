@@ -164,7 +164,6 @@ defmodule Coherence.TrackableService do
     conn
   end
 
-  @spec track_password_reset(schema, boolean)
   def track_password_reset(_user, false), do: nil
   def track_password_reset( user, true),  do: track(user, "password_reset")
 
