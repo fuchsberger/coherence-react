@@ -184,13 +184,13 @@ defmodule Coherence.ConfirmableService do
   @doc """
   Generates a map with all invalid fields and their first error
   """
-  def error_map(changeset), do:
+  defp error_map(changeset), do:
     Map.new(changeset.errors, fn ({k, v}) -> {k, translate_error(v)} end)
 
   @doc """
   Translates an error message using gettext.
   """
-  def translate_error({msg, opts}) do
+  defp translate_error({msg, opts}) do
     # Because error messages were defined within Ecto, we must
     # call the Gettext module passing our Gettext backend. We
     # also use the "errors" domain as translations are placed
