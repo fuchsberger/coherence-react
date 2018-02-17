@@ -215,33 +215,14 @@ defmodule Coherence.ConfirmableService do
     end
   end
 
-  @doc """
-  Generates a map with all invalid fields and their first error
-  """
+  # Generates a map with all invalid fields and their first error
   defp error_map(changeset), do:
     Map.new(changeset.errors, fn ({k, v}) -> {k, translate_error(v)} end)
 
-  @doc """
-  Translates an error message using gettext.
-  """
+  # Translates an error message using gettext.
   defp translate_error({msg, opts}) do
-    # Because error messages were defined within Ecto, we must
-    # call the Gettext module passing our Gettext backend. We
-    # also use the "errors" domain as translations are placed
-    # in the errors.po file.
-    # Ecto will pass the :count keyword if the error message is
-    # meant to be pluralized.
-    # On your own code and templates, depending on whether you
-    # need the message to be pluralized or not, this could be
-    # written simply as:
-    #
-    #     dngettext "errors", "1 file", "%{count} files", count
-    #     dgettext "errors", "is invalid"
-    #
-    if count = opts[:count] do
-      Gettext.dngettext("default", "errors", msg, msg, count, opts)
-    else
-      Gettext.dgettext("default", "errors", msg, opts)
-    end
+    if count = opts[:count],
+    do:   Gettext.dngettext("default", "errors", msg, msg, count, opts),
+    else: Gettext.dgettext("default", "errors", msg, opts)
   end
 end
