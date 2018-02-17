@@ -89,4 +89,15 @@ defmodule Coherence.Authentication.Utils do
   def new_session_path(conn) do
     Module.concat(Config.web_module, Router.Helpers).session_path(conn, :new)
   end
+
+  # Generates a map with all invalid fields and their first error
+  def error_map(changeset), do:
+    Map.new(changeset.errors, fn ({k, v}) -> {k, translate_error(v)} end)
+
+  # Translates an error message using gettext.
+  defp translate_error({msg, opts}) do
+    if count = opts[:count],
+    do:   Gettext.dngettext("default", "errors", msg, msg, count, opts),
+    else: Gettext.dgettext("default", "errors", msg, opts)
+  end
 end

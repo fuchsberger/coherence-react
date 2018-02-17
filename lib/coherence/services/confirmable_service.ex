@@ -28,6 +28,7 @@ defmodule Coherence.ConfirmableService do
   use CoherenceWeb, :service
 
   import Coherence.Controller
+  import Coherence.Authentication.Utils, only: [error_map: 1]
 
   alias Coherence.{Messages, Schemas}
 
@@ -213,16 +214,5 @@ defmodule Coherence.ConfirmableService do
           end
         end
     end
-  end
-
-  # Generates a map with all invalid fields and their first error
-  defp error_map(changeset), do:
-    Map.new(changeset.errors, fn ({k, v}) -> {k, translate_error(v)} end)
-
-  # Translates an error message using gettext.
-  defp translate_error({msg, opts}) do
-    if count = opts[:count],
-    do:   Gettext.dngettext("default", "errors", msg, msg, count, opts),
-    else: Gettext.dgettext("default", "errors", msg, opts)
   end
 end
