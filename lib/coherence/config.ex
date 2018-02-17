@@ -15,6 +15,8 @@ defmodule Coherence.Config do
   * :schema_key
   * :logged_out_url
   * :logged_in_url
+  * :confirmation_url   confirm account rul
+  * :password_url       password reset url
   * :email_from                                       - Deprecated. Use `email_from_name` and `email_from_email` instead
   * :email_from_name
   * :email_from_email
@@ -80,6 +82,8 @@ defmodule Coherence.Config do
     :schema_key,
     :logged_out_url,
     :logged_in_url,
+    {:confirmation_url, "/account/confirm"},
+    {:password_url, "/account/reset_password"},
     :email_from_name,
     :email_from_email,
     :email_reply_to_name,
@@ -94,7 +98,7 @@ defmodule Coherence.Config do
     {:verify_user_token, &Coherence.SessionService.verify_user_token/2},
     {:password_hash_field, :password_hash},
     {:login_field, :email},
-    {:login_cookie, "coherence_login"},
+    {:login_cookie, "auth"},
     {:auth_module, Coherence.Authentication.Session},
     {:create_login, :create_login},
     {:update_login, :update_login},

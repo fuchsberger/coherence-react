@@ -65,60 +65,9 @@ defmodule Coherence.ConfirmableService do
         def confirm(user) do
           Schemas.change_user(user, %{confirmed_at: NaiveDateTime.utc_now(), confirmation_token: nil})
         end
-
-        @doc """
-        Confirm a user account.
-
-        Adds the `:confirmed_at` datetime field on the user model.
-
-        deprecated! Please use Coherence.ControllerHelpers.unlock!/1.
-        """
-        def confirm!(user) do
-          IO.warn "#{inspect Config.user_schema}.confirm!/1 has been deprecated. Please use Coherence.ControllerHelpers.confirm!/1 instead."
-          changeset = Schemas.change_user(user, %{confirmed_at: NaiveDateTime.utc_now(), confirmation_token: nil})
-          if confirmed? user do
-            changeset = Ecto.Changeset.add_error changeset, :confirmed_at, Messages.backend().already_confirmed()
-            {:error, changeset}
-          else
-            Config.repo.update changeset
-          end
-        end
       end
     end
   end
-
-
-  @doc """
-  Confirm a user account.
-
-  Adds the `:confirmed_at` datetime field on the user model.
-
-  deprecated! Please use Coherence.ControllerHelpers.unlock!/1.
-  """
-  @spec confirm(Ecto.Schema.t) :: Ecto.Changeset.t
-  def confirm(user) do
-    Schemas.change_user(user, %{confirmed_at: NaiveDateTime.utc_now(), confirmation_token: nil})
-  end
-
-  @doc """
-  Confirm a user account.
-
-  Adds the `:confirmed_at` datetime field on the user model.
-
-  deprecated! Please use Coherence.ControllerHelpers.unlock!/1.
-  """
-  @spec confirm!(Ecto.Schema.t) :: Ecto.Changeset.t | {:error, Ecto.Changeset.t}
-  def confirm!(user) do
-    changeset = Schemas.change_user(user, %{confirmed_at: NaiveDateTime.utc_now(), confirmation_token: nil})
-
-    if confirmed? user do
-      changeset = Ecto.Changeset.add_error changeset, :confirmed_at, Messages.backend().already_confirmed()
-      {:error, changeset}
-    else
-      Schemas.update changeset
-    end
-  end
-
 
   @doc """
   Checks if the user has been confirmed.
@@ -167,4 +116,68 @@ defmodule Coherence.ConfirmableService do
     end
   end
 
+  @doc """
+  Resends a confirmation email with a new token to the account with given email
+  """
+  def confirm_account(socket, params) do
+    validation_errors = error_map(User.changeset(%User{}, params, :email))
+    if Map.has_key?(validation_errors, :email) do
+      {:reply, {:error, %{ errors: validation_errors }}, socket}
+    else
+      user_schema = Config.user_schema
+      case Schemas.get_user_by_email params["email"] do
+        nil ->
+          {:reply, {:error, %{
+            flash: Messages.backend().could_not_find_that_email_address()
+          }}, socket}
+        user ->
+          if user_schema.confirmed?(user) do
+            {:reply, {:error, %{
+              flash: Messages.backend().account_already_confirmed() }
+            }, socket}
+          else
+            case send_confirmation(user, user_schema) do
+              {:ok, flash}    -> {:reply, {:ok,    %{ flash: flash }}, socket}
+              {:error, flash} -> {:reply, {:error, %{ flash: flash }}, socket}
+            end
+          end
+      end
+    end
+  end
+
+  @doc """
+  Handle the user's click on the confirm link in the confirmation email.
+  Validate that the confirmation token has not expired and sets `confirmation_sent_at`
+  field to nil, marking the user as confirmed.
+  """
+  def confirm_token(socket, %{"token" => token}) do
+    user_schema = Config.user_schema
+    case Schemas.get_by_user confirmation_token: token do
+      nil ->
+        {:reply, {:error, %{
+          flash: Messages.backend().invalid_confirmation_token()
+        }}, socket}
+      user ->
+        if expired? user do
+          {:reply, {:error, %{
+            flash: Messages.backend().confirmation_token_expired()
+          }}, socket}
+        else
+          changeset = changeset(:confirmation, user_schema, user, %{
+            confirmation_token: nil,
+            confirmed_at: DateTime.utc_now,
+            })
+          case Config.repo.update(changeset) do
+            {:ok, _user} ->
+              {:reply, {:ok, %{
+                flash: Messages.backend().user_account_confirmed_successfully()
+              }}, socket}
+            {:error, _changeset} ->
+              {:reply, {:error, %{
+                flash: Messages.backend().problem_confirming_user_account()
+              }}, socket}
+          end
+        end
+    end
+  end
 end

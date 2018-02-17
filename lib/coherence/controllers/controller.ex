@@ -9,11 +9,43 @@ defmodule Coherence.Controller do
 
   require Logger
 
+  @endpoint Module.concat(Config.web_module, Endpoint)
+
   @type schema :: Ecto.Schema.t
   @type changeset :: Ecto.Changeset.t
   @type schema_or_error :: schema | {:error, changeset}
   @type conn :: Plug.Conn.t
   @type params :: Map.t
+
+  @doc """
+  Get the configured logged_out_url.
+  """
+  @spec logged_out_url() :: String.t
+  def logged_out_url() do
+    Config.logged_out_url || "/"
+  end
+
+  @doc """
+  Get the configured logged_in_url.
+  """
+  @spec logged_in_url() :: String.t
+  def logged_in_url() do
+    Config.logged_in_url || "/"
+  end
+
+  @doc """
+  Get the configured confirm account url (requires token)
+  """
+  @spec confirmation_url(String.t) :: String.t
+  def confirmation_url(token), do:
+    @endpoint.url <> Config.confirmation_url <> "/" <> token
+
+  @doc """
+  Get the configured password reset url (requires token)
+  """
+  @spec password_url(String.t) :: String.t
+  def password_url(token), do:
+    @endpoint.url <> Config.password_url <> "/" <> token
 
   @doc """
   Put LayoutView
@@ -56,22 +88,6 @@ defmodule Coherence.Controller do
   @spec router_helpers() :: module
   def router_helpers do
     Module.concat(Config.router(), Helpers)
-  end
-
-  @doc """
-  Get the configured logged_out_url.
-  """
-  @spec logged_out_url() :: String.t
-  def logged_out_url() do
-    Config.logged_out_url || "/"
-  end
-
-  @doc """
-  Get the configured logged_in_url.
-  """
-  @spec logged_in_url() :: String.t
-  def logged_in_url() do
-    Config.logged_in_url || "/"
   end
 
   @doc """
@@ -162,31 +178,31 @@ defmodule Coherence.Controller do
 
   @doc """
   Send confirmation email with token.
-
   If the user supports confirmable, generate a token and send the email.
   """
-  @spec send_confirmation(Plug.Conn.t, Ecto.Schema.t, module) :: Plug.Conn.t
-  def send_confirmation(conn, user, user_schema) do
+  @spec send_confirmation(schema, struct) :: map
+  def send_confirmation(user, user_schema) do
     if user_schema.confirmable? do
       token = random_string 48
-      url = router_helpers().confirmation_url(conn, :edit, token)
-      Logger.debug "confirmation email url: #{inspect url}"
+      url = confirmation_url(token)
       dt = NaiveDateTime.utc_now()
+      Logger.debug "confirmation email url: #{inspect url}"
       user
-      |> user_schema.changeset(%{confirmation_token: token,
-        confirmation_sent_at: dt,
-        current_password: user.password})
+      |> user_schema.changeset(%{
+          confirmation_token: token,
+          confirmation_sent_at: dt,
+          current_password: user.password
+        })
       |> Config.repo.update!
 
       if Config.mailer?() do
-        send_user_email :confirmation, user, url
-        put_flash(conn, :info, Messages.backend().confirmation_email_sent())
+        send_user_email :confirmation, user, confirmation_url(token)
+        {:ok, Messages.backend().confirmation_email_sent() }
       else
-        put_flash(conn, :error, Messages.backend().mailer_required())
+        {:error, Messages.backend().mailer_required() }
       end
     else
-      conn
-      |> put_flash(:info, Messages.backend().registration_created_successfully())
+      {:ok, Messages.backend().registration_created_successfully() }
     end
   end
 
