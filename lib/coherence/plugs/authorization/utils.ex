@@ -1,4 +1,7 @@
 defmodule Coherence.Authentication.Utils do
+
+  use Gettext
+
   @moduledoc false
   import Plug.Conn
   alias Coherence.Config
