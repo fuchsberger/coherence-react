@@ -3,8 +3,9 @@ defmodule Coherence.RegisterService do
   use Coherence.Config
   use CoherenceWeb, :service
 
-  import Coherence.TrackableService
   import Coherence.Authentication.Utils, only: [error_map: 1]
+  import Coherence.ConfirmableService, only: [send_confirmation: 1]
+  import Coherence.TrackableService
 
   alias Coherence.{Messages, Schemas}
 
@@ -66,7 +67,7 @@ defmodule Coherence.RegisterService do
       confirmed:  confirmed,
       email:      user.email,
       id:         user.id,
-      inserted_at: NaiveDateTime.to_iso8601(uuser.inserted_at) <> "Z",
+      inserted_at: NaiveDateTime.to_iso8601(user.inserted_at) <> "Z",
       name:       user.name
     }
   end
