@@ -89,5 +89,5 @@ defmodule Coherence.Authentication.Utils do
 
   # Generates a map with all invalid fields and their first error
   def error_map(changeset), do:
-    Map.new(changeset.errors, fn ({k, v}) -> {k, elem(v, 0))} end)
+    Map.new(changeset.errors, fn ({k, v}) -> {k, elem(v, 0)} end)
 end

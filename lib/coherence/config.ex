@@ -89,7 +89,6 @@ defmodule Coherence.Config do
     :email_reply_to_name,
     :email_reply_to_email,
     :endpoint,
-    :gettext,
     :site_name,
     :changeset,
     :layout,
