@@ -26,7 +26,7 @@ defmodule Coherence.RegisterService do
           {:error, flash} -> {:reply, {:error, %{flash: flash}}, socket}
         end
       {:error, changeset} ->
-        {:reply, {:error, %{errors: error_map(changeset)}, socket}
+        {:reply, {:error, %{errors: error_map(changeset)}}, socket}
     end
   end
 
