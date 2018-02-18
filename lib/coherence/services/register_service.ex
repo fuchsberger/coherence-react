@@ -5,30 +5,28 @@ defmodule Coherence.RegisterService do
 
   import Coherence.Authentication.Utils, only: [error_map: 1]
   import Coherence.ConfirmableService, only: [send_confirmation: 1]
-  import Coherence.TrackableService
+  import Coherence.{TrackableService, SocketService}
 
-  alias Coherence.{Schemas}
+  alias Coherence.Schemas
 
   @type params :: Map.t
   @type socket :: Phoenix.Socket.t
 
   @doc """
   Create the new user account.
-  Create and send a confirmation if this option is enabled.
+  Create and send a confirmation, if this option is enabled.
+  Broadcasts updated user to feedback channel, if this option is enabled.
   """
   @spec create_user(socket, params) :: {:reply, {atom, Map.t}, socket}
   def create_user(socket, params) do
     case Schemas.create_user params do
       {:ok, user} ->
-        if not is_nil(Config.feedback_channel), do: Config.endpoint.broadcast(
-          Config.feedback_channel, "user_created", format_user(user))
-
+        broadcast("user_created", format_user(user))
         case send_confirmation(user) do
-          {:ok, flash}    -> {:reply, {:ok,    %{flash: flash}}, socket}
-          {:error, flash} -> {:reply, {:error, %{flash: flash}}, socket}
+          {:ok, flash}    -> return_ok(socket, flash)
+          {:error, flash} -> return_error(socket, flash)
         end
-      {:error, changeset} ->
-        {:reply, {:error, %{errors: error_map(changeset)}}, socket}
+      {:error, changeset} -> return_errors(socket, changeset)
     end
   end
 
@@ -56,20 +54,5 @@ defmodule Coherence.RegisterService do
     else
       {:reply, {:error, %{ flash: "You are not authentificated." }}, socket}
     end
-  end
-
-  defp format_user(user) do
-    blocked   = if user.blocked_at,   do: true, else: false
-    confirmed = if user.confirmed_at, do: true, else: false
-
-    %{
-      admin:      user.admin,
-      blocked:    blocked,
-      confirmed:  confirmed,
-      email:      user.email,
-      id:         user.id,
-      inserted_at: NaiveDateTime.to_iso8601(user.inserted_at) <> "Z",
-      name:       user.name
-    }
   end
 end

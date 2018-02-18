@@ -86,8 +86,4 @@ defmodule Coherence.Authentication.Utils do
   def new_session_path(conn) do
     Module.concat(Config.web_module, Router.Helpers).session_path(conn, :new)
   end
-
-  # Generates a map with all invalid fields and their first error
-  def error_map(changeset), do:
-    Map.new(changeset.errors, fn ({k, v}) -> {k, elem(v, 0)} end)
 end
