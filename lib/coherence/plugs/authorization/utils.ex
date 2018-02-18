@@ -89,14 +89,5 @@ defmodule Coherence.Authentication.Utils do
 
   # Generates a map with all invalid fields and their first error
   def error_map(changeset), do:
-    Map.new(changeset.errors, fn ({k, v}) -> {k, translate_error(v)} end)
-
-  # Translates an error message using gettext.
-  defp translate_error({msg, opts}) do
-    IO.inspect {msg, opts}
-    "Error"
-    # if count = opts[:count],
-    # do:   Config.gettext.dngettext("errors", msg, msg, count, opts),
-    # else: Config.gettext.dgettext("errors", msg, opts)
-  end
+    Map.new(changeset.errors, fn ({k, v}) -> {k, elem(v, 0))} end)
 end
