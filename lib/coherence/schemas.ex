@@ -45,13 +45,11 @@ defmodule Coherence.Schemas do
   end
 
   def create_user(params) do
-    user_schema = Config.user_schema
-    Config.repo.insert user_schema.new_changeset(params)
+    Config.repo.insert change_user(params)
   end
 
   def create_user!(params) do
-    user_schema = Config.user_schema
-    Config.repo.insert! user_schema.new_changeset(params)
+    Config.repo.insert! change_user(params)
   end
 
   def update_user(user, params) do
