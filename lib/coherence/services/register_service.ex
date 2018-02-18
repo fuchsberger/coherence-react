@@ -16,7 +16,7 @@ defmodule Coherence.RegisterService do
   def create_user(socket, params) do
     case Schemas.create_user params do
       {:ok, user} ->
-        if not is_nil Config.feedback_channel, do: Config.endpoint.broadcast(
+        if not is_nil(Config.feedback_channel), do: Config.endpoint.broadcast(
           Config.feedback_channel,
           "user_created",
           format_user(user)
