@@ -1,7 +1,5 @@
 defmodule Coherence.Authentication.Utils do
 
-  use Gettext, otp_app: :crowd_crush
-
   @moduledoc false
   import Plug.Conn
   alias Coherence.Config
@@ -100,7 +98,7 @@ defmodule Coherence.Authentication.Utils do
   # Translates an error message using gettext.
   defp translate_error({msg, opts}) do
     if count = opts[:count],
-    do:   Gettext.dngettext("default", "errors", msg, msg, count, opts),
-    else: Gettext.dgettext("default", "errors", msg, opts)
+    do:   Config.gettext.dngettext("default", "errors", msg, msg, count, opts),
+    else: Config.gettext.dgettext("default", "errors", msg, opts)
   end
 end
