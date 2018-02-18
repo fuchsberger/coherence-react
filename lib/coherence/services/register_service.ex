@@ -12,7 +12,7 @@ defmodule Coherence.RegisterService do
   @type schema :: Ecto.Schema.t
   @type socket :: Phoenix.Socket.t
 
-  @spec create_user(socket, params) :: {:reply, {atom, Map.t, socket}
+  @spec create_user(socket, params) :: {:reply, {atom, Map.t}, socket}
   def create_user(socket, params) do
     case Schemas.create_user params do
       {:ok, user} ->
