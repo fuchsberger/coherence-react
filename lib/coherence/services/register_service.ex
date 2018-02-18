@@ -7,21 +7,22 @@ defmodule Coherence.RegisterService do
   import Coherence.ConfirmableService, only: [send_confirmation: 1]
   import Coherence.TrackableService
 
-  alias Coherence.{Messages, Schemas}
+  alias Coherence.{Schemas}
 
   @type params :: Map.t
-  @type schema :: Ecto.Schema.t
   @type socket :: Phoenix.Socket.t
 
+  @doc """
+  Create the new user account.
+  Create and send a confirmation if this option is enabled.
+  """
   @spec create_user(socket, params) :: {:reply, {atom, Map.t}, socket}
   def create_user(socket, params) do
     case Schemas.create_user params do
       {:ok, user} ->
         if not is_nil(Config.feedback_channel), do: Config.endpoint.broadcast(
-          Config.feedback_channel,
-          "user_created",
-          format_user(user)
-        )
+          Config.feedback_channel, "user_created", format_user(user))
+
         case send_confirmation(user) do
           {:ok, flash}    -> {:reply, {:ok,    %{flash: flash}}, socket}
           {:error, flash} -> {:reply, {:error, %{flash: flash}}, socket}
