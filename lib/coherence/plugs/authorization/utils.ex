@@ -1,8 +1,11 @@
 defmodule Coherence.Authentication.Utils do
 
   @moduledoc false
+
   import Plug.Conn
   alias Coherence.Config
+
+  require Config.gettext
 
   @type conn :: Plug.Conn.t
   @type t :: Map.t
