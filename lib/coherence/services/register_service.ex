@@ -66,7 +66,7 @@ defmodule Coherence.RegisterService do
       confirmed:  confirmed,
       email:      user.email,
       id:         user.id,
-      inserted_at: NaiveDateTime.to_iso8601(u.inserted_at) <> "Z",
+      inserted_at: NaiveDateTime.to_iso8601(uuser.inserted_at) <> "Z",
       name:       user.name
     }
   end
