@@ -80,15 +80,15 @@ defmodule Coherence.Config do
     :repo,
     :user_schema,
     :schema_key,
-    :url_base,
     :logged_out_url,
     :logged_in_url,
-    {:confirmation_url, "/account/confirm"},
-    {:password_url, "/account/reset_password"},
+    {:confirm_user_path, "/account/confirm"},
+    {:password_reset_path, "/account/reset_password"},
     :email_from_name,
     :email_from_email,
     :email_reply_to_name,
     :email_reply_to_email,
+    :endpoint,
     :site_name,
     :changeset,
     :layout,
@@ -119,7 +119,8 @@ defmodule Coherence.Config do
     {:minimum_password_length, 4},
     :messages_backend,
     :router,
-    :user_active_field
+    :user_active_field,
+    {:feedback_channel, nil}
   ]
   |> Enum.each(fn
         {key, default} ->

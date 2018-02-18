@@ -73,7 +73,7 @@ defmodule Coherence.ConfirmableService do
   # get the configured confirm account url (requires token)
   @spec confirmation_url(String.t) :: String.t
   defp confirmation_url(token), do:
-    Config.url_base <> Config.confirmation_url <> "/" <> token
+    Config.endpoint.url() <> Config.confirm_user_path <> "/" <> token
 
   @doc """
   Checks if the user has been confirmed.
@@ -126,7 +126,7 @@ defmodule Coherence.ConfirmableService do
   Send confirmation email with token.
   If the user supports confirmable, generate a token and send the email.
   """
-  @spec send_confirmation(Ecto.Schema.t) :: map
+  @spec send_confirmation(Ecto.Schema.t) :: {:ok, String.t} | {:error, String.t}
   def send_confirmation(user) do
     user_schema = Config.user_schema
     if user_schema.confirmable? do

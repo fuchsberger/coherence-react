@@ -8,6 +8,28 @@ defmodule Coherence.RegisterService do
 
   alias Coherence.{Messages, Schemas}
 
+  @type params :: Map.t
+  @type schema :: Ecto.Schema.t
+  @type socket :: Phoenix.Socket.t
+
+  @spec create_user(socket, params) :: {:reply, {atom, Map.t, socket}
+  def create_user(socket, params) do
+    case Schemas.create_user params do
+      {:ok, user} ->
+        if not is_nil Config.feedback_channel, do: Config.endpoint.broadcast(
+          Config.feedback_channel,
+          "user_created",
+          format_user(user)
+        )
+        case send_confirmation(user) do
+          {:ok, flash}    -> {:reply, {:ok,    %{flash: flash}}, socket}
+          {:error, flash} -> {:reply, {:error, %{flash: flash}}, socket}
+        end
+      {:error, changeset} ->
+        {:reply, {:error, %{errors: error_map(changeset)}, socket}
+    end
+  end
+
   @doc """
   Allows to change password, email or name though the /settings page
   """
@@ -32,5 +54,20 @@ defmodule Coherence.RegisterService do
     else
       {:reply, {:error, %{ flash: "You are not authentificated." }}, socket}
     end
+  end
+
+  defp format_user(user) do
+    blocked   = if user.blocked_at,   do: true, else: false
+    confirmed = if user.confirmed_at, do: true, else: false
+
+    %{
+      admin:      user.admin,
+      blocked:    blocked,
+      confirmed:  confirmed,
+      email:      user.email,
+      id:         user.id,
+      inserted_at: NaiveDateTime.to_iso8601(u.inserted_at) <> "Z",
+      name:       user.name
+    }
   end
 end
