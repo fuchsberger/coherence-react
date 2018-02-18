@@ -19,6 +19,7 @@ defmodule Coherence.Messages do
   @callback cant_find_that_token() :: binary
   @callback confirmation_token_expired() :: binary
   @callback could_not_find_that_email_address() :: binary
+  @callback email_taken() :: binary
   @callback forgot_your_password() :: binary
   @callback http_authentication_required() :: binary
   @callback incorrect_login_or_password([{atom, any}]) :: binary

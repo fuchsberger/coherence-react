@@ -5,8 +5,6 @@ defmodule Coherence.Authentication.Utils do
   import Plug.Conn
   alias Coherence.Config
 
-  require Config.gettext
-
   @type conn :: Plug.Conn.t
   @type t :: Map.t
 
@@ -53,10 +51,8 @@ defmodule Coherence.Authentication.Utils do
   @spec get_credential_store() :: module
   def get_credential_store do
     case Config.auth_module do
-      Coherence.Authentication.Session ->
-        Coherence.CredentialStore.Session
-      Coherence.Authentication.Basic ->
-        Coherence.CredentialStore.Server
+      Coherence.Authentication.Session -> Coherence.CredentialStore.Session
+      Coherence.Authentication.Basic   -> Coherence.CredentialStore.Server
     end
   end
 
@@ -69,11 +65,8 @@ defmodule Coherence.Authentication.Utils do
   def to_string(string) when is_binary(string), do: string
 
   def delete_user_token(conn) do
-    if Config.user_token do
-      assign(conn, Config.token_assigns_key, nil)
-    else
-      conn
-    end
+    if Config.user_token, do: assign(conn, Config.token_assigns_key, nil),
+    else: conn
   end
 
   def create_user_token(conn, _, nil_or_false, _) when nil_or_false in [nil, false], do: conn
@@ -100,8 +93,10 @@ defmodule Coherence.Authentication.Utils do
 
   # Translates an error message using gettext.
   defp translate_error({msg, opts}) do
-    if count = opts[:count],
-    do:   Config.gettext.dngettext("errors", msg, msg, count, opts),
-    else: Config.gettext.dgettext("errors", msg, opts)
+    IO.inspect {msg, opts}
+    "Error"
+    # if count = opts[:count],
+    # do:   Config.gettext.dngettext("errors", msg, msg, count, opts),
+    # else: Config.gettext.dgettext("errors", msg, opts)
   end
 end
