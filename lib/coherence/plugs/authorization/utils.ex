@@ -1,6 +1,6 @@
 defmodule Coherence.Authentication.Utils do
 
-  use Gettext
+  use Gettext, otp_app: :crowd_crush
 
   @moduledoc false
   import Plug.Conn
