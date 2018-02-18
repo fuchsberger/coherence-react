@@ -98,7 +98,7 @@ defmodule Coherence.Authentication.Utils do
   # Translates an error message using gettext.
   defp translate_error({msg, opts}) do
     if count = opts[:count],
-    do:   Config.gettext.dngettext("default", "errors", msg, msg, count, opts),
-    else: Config.gettext.dgettext("default", "errors", msg, opts)
+    do:   Config.gettext.dngettext("errors", msg, msg, count, opts),
+    else: Config.gettext.dgettext("errors", msg, opts)
   end
 end
