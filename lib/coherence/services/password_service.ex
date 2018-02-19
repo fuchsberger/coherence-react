@@ -43,7 +43,7 @@ defmodule Coherence.PasswordService do
             reset_password_sent_at: NaiveDateTime.utc_now()
           }, :password)
           # send token via email
-          IO.inspect apply(Module.concat(Config.web_module, Endpoint), :url)
+          IO.inspect Module.concat(Config.web_module, Endpoint)
           IO.inspect apply(Module.concat(Config.web_module, Endpoint), :url, [])
           IO.inspect password_url(token)
           if Config.mailer?() do
