@@ -105,20 +105,4 @@ defmodule CoherenceTest.PasswordController do
       assert user.reset_password_sent_at == nil
     end
   end
-
-  describe "trackable table" do
-    setup [:setup_trackable_table]
-
-    test "reset password creates rememberable", %{conn: conn, user: user} do
-      {:ok, user} = PasswordService.reset_password_token(user)
-      params = %{"password" => %{"reset_password_token" => user.reset_password_token, "password" => "secret2", "password_confirmation" => "secret2", "current_password" => "supersecret"}}
-      conn = put conn, password_path(conn, :update, user), params
-      assert conn.private[:phoenix_flash] == %{"info" => "Password updated successfully."}
-      assert html_response(conn, 302)
-      [t1] = Repo.all(Trackable)
-      assert t1.action == "password_reset"
-      assert t1.user_id == user.id
-    end
-
-  end
 end

@@ -17,23 +17,80 @@ defmodule Coherence.PasswordService do
   """
   use Coherence.Config
 
-  alias Coherence.Controller
-  alias Coherence.Schemas
+  import Coherence.{SocketService, TrackableService}
+  alias Coherence.{Controller, Messages, Schemas}
+
+  @type params :: Map.t
+  @type socket :: Phoenix.Socket.t
 
   @doc """
-  Create and save a reset password token.
-
-  Creates a random password reset token and saves the token in the
-  user schema along with setting the `reset_password_sent_at` to the
-  current time and date.
+  Create the recovery token and send the email
   """
-  def reset_password_token(user) do
-    token = Controller.random_string 48
-    dt = NaiveDateTime.utc_now()
-    :password
-    |> Controller.changeset(user.__struct__, user,
-      %{reset_password_token: token, reset_password_sent_at: dt})
-    |> Schemas.update
+  @spec create_password_reset(socket, params) :: {:reply, {atom, Map.t}, socket}
+  def create_password_reset(socket, %{"email" => email} = params) do
+    changeset = Config.user_schema.changeset(params, :email)
+    if Map.has_key?(error_map(changeset), :email) do
+      return_errors(socket, changeset)
+    else
+      case Schemas.get_user_by_email email do
+        nil ->
+          return_error(socket, Messages.backend().could_not_find_that_email_address())
+        user ->
+          token = Controller.random_string 48
+          # update database
+          Config.repo.update! Config.user_schema.changeset(user, %{
+            reset_password_token: token,
+            reset_password_sent_at: NaiveDateTime.utc_now()
+          }, :password)
+          # send token via email
+          if Config.mailer?() do
+            Controller.send_user_email :password, user, password_url(token)
+            return_ok(socket, Messages.backend().reset_email_sent())
+          else
+            return_error(socket, Messages.backend().mailer_required())
+          end
+      end
+    end
   end
 
+  @doc """
+  Verify the new password and update the database
+  """
+  @spec update_password(socket, params) :: {:reply, {atom, Map.t}, socket}
+  def update_password(socket, params) do
+    user_schema = Config.user_schema
+    case Schemas.get_by_user reset_password_token: params["token"] do
+      nil -> return_error(socket, Messages.backend().invalid_reset_token())
+      user ->
+        if Controller.expired? user.reset_password_sent_at, days: Config.reset_token_expire_days do
+          :password
+          |> Controller.changeset(user_schema, user, clear_password_params())
+          |> Schemas.update
+          return_error(socket, Messages.backend().password_reset_token_expired())
+        else
+          params = clear_password_params params
+          :password
+          |> Controller.changeset(user_schema, user, params)
+          |> Schemas.update
+          |> case do
+            {:ok, user} ->
+              track_password_reset(user, user_schema.trackable_table?)
+              return_ok(socket, Messages.backend().password_updated_successfully())
+            {:error, changeset} ->
+              return_errors(socket, changeset)
+          end
+        end
+    end
+  end
+
+  # Get the configured password reset url (requires token)
+  defp password_url(token), do:
+    apply(Module.concat(Config.web_module, Endpoint), :url)
+    <> Config.password_reset_path <> "/" <> token
+
+  defp clear_password_params(params \\ %{}) do
+    params
+    |> Map.put("reset_password_token", nil)
+    |> Map.put("reset_password_sent_at", nil)
+  end
 end

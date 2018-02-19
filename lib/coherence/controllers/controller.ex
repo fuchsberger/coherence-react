@@ -32,14 +32,6 @@ defmodule Coherence.Controller do
   end
 
   @doc """
-  Get the configured password reset url (requires token)
-  """
-  @spec password_url(String.t) :: String.t
-  def password_url(token), do:
-    apply(Module.concat(Config.web_module, Endpoint), :url)
-    <> Config.password_reset_path <> "/" <> token
-
-  @doc """
   Put LayoutView
 
   Adds Config.layout if set.
