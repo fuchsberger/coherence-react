@@ -44,6 +44,7 @@ defmodule Coherence.PasswordService do
           }, :password)
           # send token via email
           IO.inspect apply(Module.concat(Config.web_module, Endpoint), :url)
+          IO.inspect apply(Module.concat(Config.web_module, Endpoint), :url, [])
           IO.inspect password_url(token)
           if Config.mailer?() do
             IO.inspect password_url(token)
