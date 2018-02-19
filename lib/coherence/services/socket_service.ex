@@ -22,7 +22,7 @@ defmodule Coherence.SocketService do
   def return_error(socket, flash), do: {:reply, {:error, %{flash: flash}}, socket}
 
   @spec return_errors(socket, changeset) :: {:reply, {:error, Map.t}, socket}
-  def return_error(socket, changeset), do:
+  def return_errors(socket, changeset), do:
     {:reply, {:error, %{errors: error_map(changeset)}}, socket}
 
   @spec format_user(schema) :: Map.t
