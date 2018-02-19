@@ -3,11 +3,10 @@ defmodule Coherence.RegisterService do
   use Coherence.Config
   use CoherenceWeb, :service
 
-  import Coherence.Authentication.Utils, only: [error_map: 1]
   import Coherence.ConfirmableService, only: [send_confirmation: 1]
   import Coherence.{TrackableService, SocketService}
 
-  alias Coherence.Schemas
+  alias Coherence.{Messages, Schemas}
 
   @type params :: Map.t
   @type socket :: Phoenix.Socket.t
@@ -34,25 +33,19 @@ defmodule Coherence.RegisterService do
   Allows to change password, email or name though the /settings page
   """
   def update_account(socket, params) do
-    if Map.has_key?(socket.assigns, :user) do
-      case Schemas.get_user socket.assigns.user.id do
-        nil ->
-          {:reply, {:error, %{ flash: "Account does not exist." }}, socket}
-        user ->
-          Config.user_schema.changeset(user, params, :settings)
-          |> Schemas.update
-          |> case do
-              {:ok, user} ->
-                if params["password_current"], do:
-                  track_password_reset(user, Config.user_schema.trackable_table?)
-                {:reply, {:ok, %{ flash: "User was successfully updated" }}, socket}
-
-              {:error, changeset} ->
-                {:reply, {:error, %{ errors: error_map(changeset) }}, socket}
-            end
-      end
-    else
-      {:reply, {:error, %{ flash: "You are not authentificated." }}, socket}
+    case Schemas.get_user socket.assigns.user.id do
+      nil -> return_error(socket, Messages.backend().invalid_request())
+      user ->
+        Config.user_schema.changeset(user, params, :settings)
+        |> Schemas.update
+        |> case do
+            {:ok, user} ->
+              broadcast("user_updated", format_user(user))
+              if params["password_current"], do:
+                track_password_reset(user, Config.user_schema.trackable_table?)
+              return_ok(socket, Messages.backend().account_updated_successfully())
+            {:error, changeset} -> return_errors(socket, changeset)
+          end
     end
   end
 end
