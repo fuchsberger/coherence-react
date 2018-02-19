@@ -44,6 +44,7 @@ defmodule Coherence.PasswordService do
           }, :password)
           # send token via email
           if Config.mailer?() do
+            IO.inspect password_url(token)
             send_user_email :password, user, password_url(token)
             IO.inspect Messages.backend().reset_email_sent()
             return_ok(socket, Messages.backend().reset_email_sent())
