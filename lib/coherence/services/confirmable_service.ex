@@ -69,12 +69,6 @@ defmodule Coherence.ConfirmableService do
     end
   end
 
-  # get the configured confirm account url (requires token)
-  @spec confirmation_url(String.t) :: String.t
-  defp confirmation_url(token), do:
-    apply(Module.concat(Config.web_module, Endpoint), :url)
-    <> Config.confirm_user_path <> "/" <> token
-
   @doc """
   Checks if the user has been confirmed.
 
@@ -202,4 +196,9 @@ defmodule Coherence.ConfirmableService do
         end
     end
   end
+
+  # get the configured confirm account url (requires token)
+  defp confirmation_url(token), do:
+    apply(Module.concat(Config.web_module, Endpoint), :url, [])
+    <> Config.confirm_user_path <> "/" <> token
 end

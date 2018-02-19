@@ -43,13 +43,8 @@ defmodule Coherence.PasswordService do
             reset_password_sent_at: NaiveDateTime.utc_now()
           }, :password)
           # send token via email
-          IO.inspect Module.concat(Config.web_module, Endpoint)
-          IO.inspect apply(Module.concat(Config.web_module, Endpoint), :url, [])
-          IO.inspect password_url(token)
           if Config.mailer?() do
-            IO.inspect password_url(token)
             send_user_email :password, user, password_url(token)
-            IO.inspect Messages.backend().reset_email_sent()
             return_ok(socket, Messages.backend().reset_email_sent())
           else
             return_error(socket, Messages.backend().mailer_required())
@@ -90,7 +85,7 @@ defmodule Coherence.PasswordService do
 
   # Get the configured password reset url (requires token)
   defp password_url(token), do:
-    apply(Module.concat(Config.web_module, Endpoint), :url)
+    apply(Module.concat(Config.web_module, Endpoint), :url, [])
     <> Config.password_reset_path <> "/" <> token
 
   defp clear_password_params(params \\ %{}) do
