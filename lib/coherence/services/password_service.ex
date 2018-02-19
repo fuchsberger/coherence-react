@@ -26,8 +26,8 @@ defmodule Coherence.PasswordService do
   @doc """
   Create the recovery token and send the email
   """
-  @spec create_password_reset(socket, params) :: {:reply, {atom, Map.t}, socket}
-  def create_password_reset(socket, %{"email" => email} = params) do
+  @spec create_password(socket, params) :: {:reply, {atom, Map.t}, socket}
+  def create_password(socket, %{"email" => email} = params) do
     changeset = Config.user_schema.changeset(params, :email)
     if Map.has_key?(error_map(changeset), :email) do
       return_errors(socket, changeset)
