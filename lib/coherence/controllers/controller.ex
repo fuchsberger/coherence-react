@@ -36,7 +36,8 @@ defmodule Coherence.Controller do
   """
   @spec password_url(String.t) :: String.t
   def password_url(token), do:
-    Config.endpoint.url() <> Config.password_reset_path <> "/" <> token
+    apply(Module.concat(Config.web_module, Endpoint), :url)
+    <> Config.password_reset_path <> "/" <> token
 
   @doc """
   Put LayoutView
