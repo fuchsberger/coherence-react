@@ -40,7 +40,7 @@ defmodule Coherence.RegisterService do
         |> Schemas.update
         |> case do
             {:ok, user} ->
-              broadcast("user_updated", format_user(user))
+              broadcast("users_updated", %{users: [format_user(user)]})
               if params["password_current"], do:
                 track_password_reset(user, Config.user_schema.trackable_table?)
               return_ok(socket, Messages.backend().account_updated_successfully())
