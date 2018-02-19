@@ -27,8 +27,7 @@ defmodule Coherence.ConfirmableService do
   use Coherence.Config
   use CoherenceWeb, :service
 
-  import Coherence.Controller
-  import Coherence.Authentication.Utils, only: [error_map: 1]
+  import Coherence.{Controller, SocketService}
 
   alias Coherence.{Messages, Schemas}
 
@@ -155,25 +154,20 @@ defmodule Coherence.ConfirmableService do
   Resends a confirmation email with a new token to the account with given email
   """
   def confirm_account(socket, params) do
-    user_schema = Config.user_schema
-    validation_errors = error_map(user_schema.changeset(params, :email))
-    if Map.has_key?(validation_errors, :email) do
-      {:reply, {:error, %{ errors: validation_errors }}, socket}
+    changeset = Config.user_schema.changeset(params, :email)
+    if Map.has_key?(error_map(changeset), :email) do
+      return_errors(socket, changeset)
     else
       case Schemas.get_user_by_email params["email"] do
         nil ->
-          {:reply, {:error, %{
-            flash: Messages.backend().could_not_find_that_email_address()
-          }}, socket}
+          return_error(socket, Messages.backend().could_not_find_that_email_address())
         user ->
-          if user_schema.confirmed?(user) do
-            {:reply, {:error, %{
-              flash: Messages.backend().account_already_confirmed() }
-            }, socket}
+          if Config.user_schema.confirmed?(user) do
+            return_error(socket, Messages.backend().account_already_confirmed())
           else
             case send_confirmation(user) do
-              {:ok, flash}    -> {:reply, {:ok,    %{ flash: flash }}, socket}
-              {:error, flash} -> {:reply, {:error, %{ flash: flash }}, socket}
+              {:ok, flash}    -> return_ok(socket, flash)
+              {:error, flash} -> return_error(socket, flash)
             end
           end
       end
@@ -189,14 +183,10 @@ defmodule Coherence.ConfirmableService do
     user_schema = Config.user_schema
     case Schemas.get_by_user confirmation_token: token do
       nil ->
-        {:reply, {:error, %{
-          flash: Messages.backend().invalid_confirmation_token()
-        }}, socket}
+        return_error(socket, Messages.backend().invalid_confirmation_token())
       user ->
         if expired? user do
-          {:reply, {:error, %{
-            flash: Messages.backend().confirmation_token_expired()
-          }}, socket}
+          return_error(socket, Messages.backend().confirmation_token_expired())
         else
           changeset = changeset(:confirmation, user_schema, user, %{
             confirmation_token: nil,
@@ -204,13 +194,9 @@ defmodule Coherence.ConfirmableService do
             })
           case Config.repo.update(changeset) do
             {:ok, _user} ->
-              {:reply, {:ok, %{
-                flash: Messages.backend().user_account_confirmed_successfully()
-              }}, socket}
+              return_ok(socket, Messages.backend().user_account_confirmed_successfully())
             {:error, _changeset} ->
-              {:reply, {:error, %{
-                flash: Messages.backend().problem_confirming_user_account()
-              }}, socket}
+              return_error(socket, Messages.backend().problem_confirming_user_account())
           end
         end
     end

@@ -42,6 +42,6 @@ defmodule Coherence.SocketService do
   end
 
   # Generates a map with all invalid fields and their first error
-  defp error_map(changeset), do:
+  def error_map(changeset), do:
     Map.new(changeset.errors, fn ({k, v}) -> {k, elem(v, 0)} end)
 end
