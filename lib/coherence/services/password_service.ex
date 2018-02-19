@@ -17,8 +17,8 @@ defmodule Coherence.PasswordService do
   """
   use Coherence.Config
 
-  import Coherence.{SocketService, TrackableService}
-  alias Coherence.{Controller, Messages, Schemas}
+  import Coherence.{Controller, SocketService, TrackableService}
+  alias Coherence.{Messages, Schemas}
 
   @type params :: Map.t
   @type socket :: Phoenix.Socket.t
@@ -28,23 +28,24 @@ defmodule Coherence.PasswordService do
   """
   @spec create_password(socket, params) :: {:reply, {atom, Map.t}, socket}
   def create_password(socket, %{"email" => email} = params) do
-    changeset = Config.user_schema.changeset(params, :email)
-    if Map.has_key?(error_map(changeset), :email) do
-      return_errors(socket, changeset)
+    cs = Config.user_schema.changeset(params, :email)
+    if Map.has_key?(error_map(cs), :email) do
+      return_errors(socket, cs)
     else
       case Schemas.get_user_by_email email do
         nil ->
           return_error(socket, Messages.backend().could_not_find_that_email_address())
         user ->
-          token = Controller.random_string 48
+          token = random_string 48
           # update database
           Config.repo.update! Config.user_schema.changeset(user, %{
             reset_password_token: token,
             reset_password_sent_at: NaiveDateTime.utc_now()
           }, :password)
+          IO.inspect Config.mailer?()
           # send token via email
           if Config.mailer?() do
-            Controller.send_user_email :password, user, password_url(token)
+            send_user_email :password, user, password_url(token)
             return_ok(socket, Messages.backend().reset_email_sent())
           else
             return_error(socket, Messages.backend().mailer_required())
@@ -62,15 +63,15 @@ defmodule Coherence.PasswordService do
     case Schemas.get_by_user reset_password_token: params["token"] do
       nil -> return_error(socket, Messages.backend().invalid_reset_token())
       user ->
-        if Controller.expired? user.reset_password_sent_at, days: Config.reset_token_expire_days do
+        if expired? user.reset_password_sent_at, days: Config.reset_token_expire_days do
           :password
-          |> Controller.changeset(user_schema, user, clear_password_params())
+          |> changeset(user_schema, user, clear_password_params())
           |> Schemas.update
           return_error(socket, Messages.backend().password_reset_token_expired())
         else
           params = clear_password_params params
           :password
-          |> Controller.changeset(user_schema, user, params)
+          |> changeset(user_schema, user, params)
           |> Schemas.update
           |> case do
             {:ok, user} ->
