@@ -11,7 +11,7 @@ defmodule Coherence.SocketService do
   @spec broadcast(String.t, Map.t) :: :ok
   def broadcast(event, data) do
     if not is_nil(Config.feedback_channel), do:
-      apply(@endpoint, broadcast, [ Config.feedback_channel, event, data ])
+      apply(@endpoint, :broadcast, [ Config.feedback_channel, event, data ])
     :ok
   end
 
