@@ -73,7 +73,7 @@ The following events can be added to any channel:
   def handle_in("create_unlock", params, socket), do: create_unlock socket, params
   def handle_in("handle_unlock", params, socket), do: create_unlock socket, params
 ```
-  1) only works if `socket.assigns.user.admin == true`
+  1) if `socket.assigns.user` he will be excluded from query
   2) only works if `socket.assigns.user != nil`
 
 If the given option is installed and set in config, these functions provide the same
