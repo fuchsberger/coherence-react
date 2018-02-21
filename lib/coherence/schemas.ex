@@ -60,6 +60,11 @@ defmodule Coherence.Schemas do
     Config.repo.update! user.__struct__.changeset(user, params)
   end
 
+  def update_users(users, params) do
+    from(u in @user_schema, where: u.id in ^users)
+    |> Config.repo.update_all([set: Map.to_list(params)], [returning: true])
+  end
+
   Enum.each [Invitation, Rememberable, Trackable], fn module ->
     name = module |> inspect |> String.downcase
 

@@ -3,6 +3,7 @@
 ### 0.1.1
 * finished session create/delete
 * finished registration create/update
+* finished confirmable create/update
 * finished password reset
 
 ## 0.1.0 (2018-01-18)
