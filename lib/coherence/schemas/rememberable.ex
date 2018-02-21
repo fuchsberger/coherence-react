@@ -68,10 +68,10 @@ defmodule Coherence.Rememberable do
       def created_at, do: Timex.now
 
       def gen_token do
-        Coherence.Controller.random_string 24
+        Coherence.Socket.random_string 24
       end
       def gen_series do
-        Coherence.Controller.random_string 10
+        Coherence.Socket.random_string 10
       end
 
       defoverridable [

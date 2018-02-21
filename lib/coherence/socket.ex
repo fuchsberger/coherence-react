@@ -2,14 +2,12 @@ defmodule Coherence.Socket do
 
   use Coherence.Config
 
-  import Coherence.{ConfirmableService, TrackableService}
+  import Coherence.{TrackableService}
 
-  alias Coherence.{Messages, Schemas}
+  alias Coherence.{ConfirmableService, Messages, PasswordService, Schemas}
 
   @endpoint Module.concat(Config.web_module, Endpoint)
 
-  @type changeset :: Ecto.Changeset.t
-  @type schema :: Ecto.Schema.t
   @type socket :: Phoenix.Socket.t
 
   @doc """
@@ -22,7 +20,7 @@ defmodule Coherence.Socket do
     case Schemas.create_user params do
       {:ok, user} ->
         broadcast "user_created", format_user(user)
-        case send_confirmation(user) do
+        case ConfirmableService.send_confirmation(user) do
           {:ok, flash}    -> return_ok(socket, flash)
           {:error, flash} -> return_error(socket, flash)
         end
@@ -54,17 +52,12 @@ defmodule Coherence.Socket do
   Allows to change users, given a list of users and a list of parameters
   """
   def edit_users(socket, %{ "users" => users, "params" => params }) do
-
-    # do not allow updates on current user
-    exclude_me = current_user?(socket) and Enum.member? users, socket.assigns.user.id
-    users = if exclude_me,
-      do: List.delete(users, socket.assigns.user.id),
-      else: users
+    exclude_me = current_user_in_list?(users, socket)
+    users = exclude_me, do: List.delete(users, socket.assigns.user.id), else: users
 
     case Schemas.update_users(users, params) do
       {count, users} ->
         broadcast "users_updated", %{users: users}
-
         if exclude_me, do: return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
         else: return_ok socket, "You have successfully updated #{count} users!"
       _ ->
@@ -72,13 +65,171 @@ defmodule Coherence.Socket do
     end
   end
 
-  defp broadcast(event, data) do
-    if not is_nil(Config.feedback_channel), do:
-      apply(@endpoint, :broadcast, [ Config.feedback_channel, event, data ])
-    :ok
+  @doc """
+  Deletes users by a list of userIDs and broadcasts back to all admins
+  """
+  def handle_in(socket, %{ "users" => users }) do
+    exclude_me = current_user_in_list?(users, socket)
+    users = exclude_me, do: List.delete(users, socket.assigns.user.id), else: users
+
+    if current_user_in_list?(users, socket) do
+      return_error socket, "You cannot delete yourself. Operation cancelled."
+    else
+      case delete_users users do
+        {count, users} ->
+          broadcast "users_deleted", %{users: Enum.map(users, fn(v) -> v.id end)}
+          return_info socket, "Successfully deleted #{count} user#{plural(count, :s)}!"
+        nil ->
+          return_error socket, "Something went wrong while deleting users!"
+      end
+    end
   end
 
+
+  @doc """
+  Resends a confirmation email with a new token to the account with given email
+  """
+  def create_confirmation(socket, params) do
+    changeset = Config.user_schema.changeset(params, :email)
+    if Map.has_key?(error_map(changeset), :email) do
+      return_errors(socket, changeset)
+    else
+      case Schemas.get_user_by_email params["email"] do
+        nil ->
+          return_error(socket, Messages.backend().could_not_find_that_email_address())
+        user ->
+          if Config.user_schema.confirmed?(user) do
+            return_error(socket, Messages.backend().account_already_confirmed())
+          else
+            case ConfirmableService.send_confirmation(user) do
+              {:ok, flash}    -> return_ok(socket, flash)
+              {:error, flash} -> return_error(socket, flash)
+            end
+          end
+      end
+    end
+  end
+
+  @doc """
+  Handle the user's click on the confirm link in the confirmation email.
+  Validate that the confirmation token has not expired and sets `confirmation_sent_at`
+  field to nil, marking the user as confirmed.
+  """
+  @spec handle_confirmation(socket, params) :: {:reply, {atom, Map.t}, socket}
+  def handle_confirmation(socket, %{"token" => token}) do
+    user_schema = Config.user_schema
+    case Schemas.get_by_user confirmation_token: token do
+      nil ->
+        return_error(socket, Messages.backend().invalid_confirmation_token())
+      user ->
+        if ConfirmableService.expired? user do
+          return_error(socket, Messages.backend().confirmation_token_expired())
+        else
+          changeset = changeset(:confirmation, user_schema, user, %{
+            confirmation_token: nil,
+            confirmed_at: DateTime.utc_now,
+            })
+          case Config.repo.update(changeset) do
+            {:ok, user} ->
+              broadcast "users_updated", %{users: [format_user(user)]}
+              return_ok(socket, Messages.backend().user_account_confirmed_successfully())
+            {:error, _changeset} ->
+              return_error(socket, Messages.backend().problem_confirming_user_account())
+          end
+        end
+    end
+  end
+
+  @doc """
+  Create the recovery token and send the email
+  """
+  @spec create_recover(socket, params) :: {:reply, {atom, Map.t}, socket}
+  def create_recover(socket, %{"email" => email} = params) do
+    cs = Config.user_schema.changeset(params, :email)
+    if Map.has_key?(error_map(cs), :email) do
+      return_errors(socket, cs)
+    else
+      case Schemas.get_user_by_email email do
+        nil ->
+          return_error(socket, Messages.backend().could_not_find_that_email_address())
+        user ->
+          token = random_string 48
+          # update database
+          Config.repo.update! Config.user_schema.changeset(user, %{
+            reset_password_token: token,
+            reset_password_sent_at: NaiveDateTime.utc_now()
+          }, :password)
+          # send token via email
+          if Config.mailer?() do
+            send_user_email :password, user, password_url(token)
+            return_ok(socket, Messages.backend().reset_email_sent())
+          else
+            return_error(socket, Messages.backend().mailer_required())
+          end
+      end
+    end
+  end
+
+  @doc """
+  Verify the new password and update the database
+  """
+  @spec handle_recover(socket, params) :: {:reply, {atom, Map.t}, socket}
+  def handle_recover(socket, params) do
+    user_schema = Config.user_schema
+    case Schemas.get_by_user reset_password_token: params["token"] do
+      nil -> return_error(socket, Messages.backend().invalid_reset_token())
+      user ->
+        if expired? user.reset_password_sent_at, days: Config.reset_token_expire_days do
+          :password
+          |> changeset(user_schema, user, clear_password_params())
+          |> Schemas.update
+          return_error(socket, Messages.backend().password_reset_token_expired())
+        else
+          params = clear_password_params params
+          :password
+          |> changeset(user_schema, user, params)
+          |> Schemas.update
+          |> case do
+            {:ok, user} ->
+              track_password_reset(user, user_schema.trackable_table?)
+              return_ok(socket, Messages.backend().password_updated_successfully())
+            {:error, changeset} ->
+              return_errors(socket, changeset)
+          end
+        end
+    end
+  end
+
+  @doc """
+  Get a random string of given length.
+
+  Returns a random url safe encoded64 string of the given length.
+  Used to generate tokens for the various modules that require unique tokens.
+  """
+  @spec random_string(integer) :: binary
+  def random_string(length) do
+    length
+    |> :crypto.strong_rand_bytes
+    |> Base.url_encode64
+    |> binary_part(0, length)
+  end
+
+  defp broadcast(event, data) when is_binary Config.feedback_channel, do:
+    apply @endpoint, :broadcast, [ Config.feedback_channel, event, data ]
+
+  defp current_user_in_list?(users, socket), do:
+    current_user?(socket) and Enum.member? users, socket.assigns.user.id
+
   defp current_user?(socket), do: !!Map.has_key(socket.assigns, :user)
+
+
+  defp plural(integer) do
+    if integer > 1, do: true, else: false
+  end
+
+  defp plural(integer, :s) do
+    if integer > 1, do: "s", else: ""
+  end
 
   defp return_ok(socket), do:
     {:reply, :ok, socket}

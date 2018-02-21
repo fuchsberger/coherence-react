@@ -27,7 +27,7 @@ defmodule Coherence.ConfirmableService do
   use Coherence.Config
   use CoherenceWeb, :service
 
-  import Coherence.{Controller, SocketService}
+  import Coherence.Socket, only: [random_string: 1]
 
   alias Coherence.{Messages, Schemas}
 
@@ -105,59 +105,6 @@ defmodule Coherence.ConfirmableService do
         0 -> false
         days -> not expired?(user.confirmation_sent_at, days: days)
       end
-    end
-  end
-
-  @doc """
-  Resends a confirmation email with a new token to the account with given email
-  """
-  def create_confirmation(socket, params) do
-    changeset = Config.user_schema.changeset(params, :email)
-    if Map.has_key?(error_map(changeset), :email) do
-      return_errors(socket, changeset)
-    else
-      case Schemas.get_user_by_email params["email"] do
-        nil ->
-          return_error(socket, Messages.backend().could_not_find_that_email_address())
-        user ->
-          if Config.user_schema.confirmed?(user) do
-            return_error(socket, Messages.backend().account_already_confirmed())
-          else
-            case send_confirmation(user) do
-              {:ok, flash}    -> return_ok(socket, flash)
-              {:error, flash} -> return_error(socket, flash)
-            end
-          end
-      end
-    end
-  end
-
-  @doc """
-  Handle the user's click on the confirm link in the confirmation email.
-  Validate that the confirmation token has not expired and sets `confirmation_sent_at`
-  field to nil, marking the user as confirmed.
-  """
-  def update_confirmation(socket, %{"token" => token}) do
-    user_schema = Config.user_schema
-    case Schemas.get_by_user confirmation_token: token do
-      nil ->
-        return_error(socket, Messages.backend().invalid_confirmation_token())
-      user ->
-        if expired? user do
-          return_error(socket, Messages.backend().confirmation_token_expired())
-        else
-          changeset = changeset(:confirmation, user_schema, user, %{
-            confirmation_token: nil,
-            confirmed_at: DateTime.utc_now,
-            })
-          case Config.repo.update(changeset) do
-            {:ok, user} ->
-              broadcast "users_updated", %{users: [format_user(user)]}
-              return_ok(socket, Messages.backend().user_account_confirmed_successfully())
-            {:error, _changeset} ->
-              return_error(socket, Messages.backend().problem_confirming_user_account())
-          end
-        end
     end
   end
 

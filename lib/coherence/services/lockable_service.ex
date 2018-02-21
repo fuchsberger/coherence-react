@@ -28,13 +28,13 @@ defmodule Coherence.LockableService do
 
   """
   use Coherence.Config
-  alias Coherence.Controller
+
+  import Coherence.Socket, only: [random_string: 1]
 
   def unlock_token(user) do
-    token = Controller.random_string 48
+    token = random_string 48
     [Config.module, Coherence, Schemas]
     |> Module.concat
-    |> apply(:update_user, [user, %{unlock_token: token}])
+    |> apply(Module.concat(), :update_user, [user, %{unlock_token: token}])
   end
-
 end
