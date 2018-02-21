@@ -187,12 +187,11 @@ defmodule Coherence.TrackableService do
     track(user, "unlock")
     conn
   end
-  @spec track_unlock_token(conn, schema, boolean) :: conn
-  def track_unlock_token(conn, _user, false), do: conn
-  def track_unlock_token(conn, user, true) do
-    track(user, "unlock_token")
-    conn
-  end
+
+  @spec track_unlock_token(schema, boolean)
+  def track_unlock_token(_user, false), do: nil
+  def track_unlock_token(user, true), do: track(user, "unlock_token")
+
   ##############
   # Private
 

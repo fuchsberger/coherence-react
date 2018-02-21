@@ -9,6 +9,7 @@ defmodule Coherence.SessionController do
 
   import Coherence.TrackableService
   import Ecto.Query
+  import Coherence.Lockable, only: [lockable_failure: 1]
   import Coherence.Schemas, only: [schema: 1]
   # import Coherence.Rememberable, only: [hash: 1, gen_cookie: 3]
 
@@ -120,7 +121,7 @@ defmodule Coherence.SessionController do
   defp do_lockable(conn, _login_field, opts, false) do
     [user, user_schema, remember, lockable?, remember, params] = opts
     conn = if lockable? && user.locked_at() do
-      Controller.unlock!(user)
+      unlock!(user)
       track_unlock conn, user, user_schema.trackable_table?()
     else
       conn

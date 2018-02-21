@@ -71,7 +71,7 @@ The following events can be added to any channel:
 
   # unlockable
   def handle_in("create_unlock", params, socket), do: create_unlock socket, params
-  def handle_in("handle_unlock", params, socket), do: create_unlock socket, params
+  def handle_in("handle_unlock", params, socket), do: handle_unlock socket, params
 ```
   1) if `socket.assigns.user` he will be excluded from query
   2) only works if `socket.assigns.user != nil`
@@ -85,19 +85,23 @@ Changeset errors are returned with `{:error, %{errors: %{field: String.t}}}`
 `coherence-react` has a few new (optional) config options:
 ```elixir
 config :coherence,
-  confirm_user_path: "/account/confirm",
-  password_reset_path: "/account/reset_password",
+  confirmable_path: "/account/confirm",
+  recoverable_path: "/account/reset_password",
+  unlock_path:      "/account/unlock"
   feedback_channel: nil
 ```
+ * `confirmable_path` path in emails send to confirm account. This should not
+   include url or token. The final url will look like: `protocol://url/path/:token`
+   Defaults to: `"/account/confirm"`
+ * `recoverable_path` path in emails send to reset password. This should not
+   include url or token. The final url will look like: `protocol://url/path/:token`
+   Defaults to: `"/account/reset_password"`
+ * `unlock_path` path in emails send to unlock acocunt. This should not
+   include url or token. The final url will look like: `protocol://url/path/:token`
+   Defaults to: `"/account/unlock"`
  * `feedback_channel` if set to a string, broadcasts events such as creating or
    updating users to the given channel. Affects successful create and update user events.
    Defaults to: `nil`
- * `confirm_user_path` path in emails send to confirm account. This should not
-   include url or token. The final url will look like: `protocol://url/path/:token`
-   Defaults to: `"/account/confirm"`
- * `password_reset_path` path in emails send to reset password. This should not
-   include url or token. The final url will look like: `protocol://url/path/:token`
-   Defaults to: `"/account/reset_password"`
 
 ### Other changes
  * functions that were depreciated in Coherence `0.5.1` are removed from this repository

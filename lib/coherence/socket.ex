@@ -2,7 +2,7 @@ defmodule Coherence.Socket do
 
   use Coherence.Config
 
-  import Coherence.{TrackableService}
+  import Coherence.{InvitationService, LockableService, TrackableService}
 
   alias Coherence.{ConfirmableService, Messages, PasswordService, Schemas}
 
@@ -24,7 +24,7 @@ defmodule Coherence.Socket do
           {:ok, flash}    -> return_ok(socket, flash)
           {:error, flash} -> return_error(socket, flash)
         end
-      {:error, changeset} -> return_errors(socket, changeset)
+      {:error, changeset} -> return_error socket, %{errors: error_map(changeset)}
     end
   end
 
@@ -147,7 +147,7 @@ defmodule Coherence.Socket do
   def create_recover(socket, %{"email" => email} = params) do
     cs = Config.user_schema.changeset(params, :email)
     if Map.has_key?(error_map(cs), :email) do
-      return_errors(socket, cs)
+      return_error socket, %{errors: error_map(cs)}
     else
       case Schemas.get_user_by_email email do
         nil ->
@@ -194,11 +194,111 @@ defmodule Coherence.Socket do
               track_password_reset(user, user_schema.trackable_table?)
               return_ok(socket, Messages.backend().password_updated_successfully())
             {:error, changeset} ->
-              return_errors(socket, changeset)
+              return_error socket, %{errors: error_map(changeset)}
           end
         end
     end
   end
+
+  @doc """
+  Create and send the unlock token.
+  """
+  @spec create_unlock(socket, params) :: {:reply, {:ok | :error, Map.t}, socket}
+  def create_unlock(socket, params) do
+    user_schema = Config.user_schema()
+    email = params["email"]
+    password = params["password"]
+    user = Schemas.get_user_by_email(email)
+
+    if user != nil and user_schema.checkpw(password, Map.get(user, Config.password_hash)) do
+      case unlock_token(user) do
+        {:ok, user} ->
+          if user_schema.locked?(user) do
+            case send_unlock_email(user) do
+              {:ok, flash} -> return_ok socket, flash
+              {:error, flash} -> return_error socket, flash
+            end
+          else
+            return_error socket, Messages.backend().your_account_is_not_locked()
+          end
+        {:error, changeset} ->
+          return_error socket, %{errors: error_map(changeset)}
+      end
+    else
+      return_error socket, Messages.backend().invalid_email_or_password()
+    end
+  end
+
+  @doc """
+  Handle the unlock link click.
+  """
+  @spec handle_unlock(socket, params) :: {:reply, {:ok | :error, Map.t}, socket}
+  def handle_unlock(socket, params)) do
+    user_schema = Config.user_schema
+    token = params["id"]
+    case Schemas.get_by_user unlock_token: token do
+      nil ->
+        return_error socket, Messages.backend().invalid_unlock_token()
+      user ->
+        if user_schema.locked? user do
+          unlock! user
+          track_unlock_token(user, user_schema.trackable_table?)
+          return_ok socket, Messages.backend().your_account_has_been_unlocked()
+        else
+          clear_unlock_values(user, user_schema)
+          return_error socket, Messages.backend().account_is_not_locked()
+        end
+    end
+  end
+
+  @doc """
+  Generate and send an invitation token.
+  Creates a new invitation token, save it to the database and send
+  the invitation email.
+  """
+  @spec create_invitations(socket, params) :: {:reply, {:ok | :error, Map.t}, socket}
+  def create_invitations(socket, %{"invitations" => invitations}) do
+    result = for i <- invitations do
+      {name, email} = {Enum.at(i, 0), Enum.at(i, 1)}
+      changeset = change_invitation %{"name" => name, "email" => email}
+      case get_user_by_email email do
+        nil ->
+          token = random_string 48
+          url = invitation_url(token) <> "/edit"
+          changeset = put_change(changeset, :token, token)
+
+          case create changeset do
+            {:ok, invitation} ->
+              send_user_email :invitation, invitation, url
+              1
+            {:error, _changeset} ->
+              case get_by_invitation email: email do
+                nil -> -1
+                _invitation -> 0
+              end
+          end
+        _ -> 0
+      end
+    end
+
+    # count created invitations, already registered users and unknown errors
+    successes = count(result, 1)
+    errors_registered = count(result, 0)
+    errors_unknown = count(result, -1)
+
+    fb = "#{successes}/#{length(invitations)} users successfully invited."
+
+    fb = if errors_registered > 0,
+      do: fb <> "<br>#{errors_registered} users ignored (already registered or invited).",
+      else: fb
+
+    fb = if errors_unknown > 0,
+      do: fb <> "<br>#{errors_unknown} users were not invited because of an unknown error.",
+      else: fb
+    return_ok socket, fb
+  end
+
+  defp count(list, val), do: Enum.count(list, fn(x) -> x == val end)
 
   @doc """
   Get a random string of given length.
@@ -223,28 +323,20 @@ defmodule Coherence.Socket do
   defp current_user?(socket), do: !!Map.has_key(socket.assigns, :user)
 
 
-  defp plural(integer) do
-    if integer > 1, do: true, else: false
-  end
+  defp plural(integer), do: integer > 1
 
   defp plural(integer, :s) do
     if integer > 1, do: "s", else: ""
   end
 
-  defp return_ok(socket), do:
-    {:reply, :ok, socket}
+  # return flash message or map
+  defp return_ok(socket, data \\ %{})
+  defp return_ok(socket, data) when is_binary(data), do: {:reply, {:ok, %{ flash: data}}, socket}
+  defp return_ok(socket, data) when is_map(data),    do: {:reply, {:ok, data}, socket}
 
-  defp return_ok(socket, flash), do:
-    {:reply, {:ok, %{flash: flash}}, socket}
-
-  defp return_error(socket), do:
-    {:reply, :error, socket}
-
-  defp return_error(socket, flash), do:
-    {:reply, {:error, %{flash: flash}}, socket}
-
-  defp return_errors(socket, changeset), do:
-    {:reply, {:error, %{errors: error_map(changeset)}}, socket}
+  defp return_error(socket, data \\ %{})
+  defp return_error(socket, data) when is_binary(data), do: {:reply, {:ok, %{ flash: data}}, socket}
+  defp return_error(socket, data) when is_map(data),    do: {:reply, {:ok, data}, socket}
 
   # formats a user struct and returns a map with appropriate fields
   defp format_user(u) do

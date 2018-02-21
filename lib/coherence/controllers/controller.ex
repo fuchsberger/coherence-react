@@ -121,14 +121,6 @@ defmodule Coherence.Controller do
   end
 
   @doc """
-  Log an error message when lockable update fails.
-  """
-  @spec lockable_failure(Ecto.Changeset.t) :: :ok
-  def lockable_failure(changeset) do
-    Logger.error "Failed to update lockable attributes " <> inspect(changeset.errors)
-  end
-
-  @doc """
   Send a user email.
 
   Sends a user email given the module, model, and url. Logs the email for
@@ -169,24 +161,6 @@ defmodule Coherence.Controller do
       |> Config.repo.update
     end
   end
-
-  @doc """
-  Unlock a user account.
-
-  Clears the `:locked_at` field on the user model and updates the database.
-  """
-  @spec unlock!(Ecto.Schema.t) :: schema_or_error
-  def unlock!(user) do
-    user_schema = Config.user_schema
-    changeset = user_schema.unlock user
-    if user_schema.locked?(user) do
-      Schemas.update changeset
-    else
-      changeset = Ecto.Changeset.add_error changeset, :locked_at, Messages.backend().not_locked()
-      {:error, changeset}
-    end
-  end
-
 
   @doc """
   Plug to redirect already logged in users.

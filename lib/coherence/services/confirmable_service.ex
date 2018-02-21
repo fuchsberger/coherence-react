@@ -137,7 +137,6 @@ defmodule Coherence.ConfirmableService do
     end
   end
 
-  # get the configured confirm account url (requires token)
   defp confirmation_url(token), do:
     apply(Module.concat(Config.web_module, Endpoint), :url, [])
     <> Config.confirm_user_path <> "/" <> token
