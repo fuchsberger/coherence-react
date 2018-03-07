@@ -29,11 +29,12 @@ defmodule Coherence.Socket do
   end
 
   @doc """
-  Allows to change password, email or name though the /settings page
+  Allows to change own password, email or name though the /settings page
   """
-  def edit_user(socket, params, :settings) do
-    case Map.has_key(Schemas.get_user socket.assigns.user.id do
-      nil -> return_error(socket, Messages.backend().invalid_request())
+  def edit_user(socket, params) do
+    case Schemas.get_user(socket.assigns.user.id) do
+      nil ->
+        return_error(socket, Messages.backend().invalid_request())
       user ->
         Config.user_schema.changeset(user, params, :settings)
         |> Schemas.update
@@ -43,7 +44,8 @@ defmodule Coherence.Socket do
               if params["password_current"], do:
                 track_password_reset(user, Config.user_schema.trackable_table?)
               return_ok(socket, Messages.backend().account_updated_successfully())
-            {:error, changeset} -> return_errors(socket, changeset)
+            {:error, changeset} ->
+              return_errors(socket, changeset)
           end
     end
   end
