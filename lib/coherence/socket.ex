@@ -235,7 +235,7 @@ defmodule Coherence.Socket do
   Handle the unlock link click.
   """
   @spec handle_unlock(socket, params) :: {:reply, {:ok | :error, Map.t}, socket}
-  def handle_unlock(socket, params)) do
+  def handle_unlock(socket, params) do
     user_schema = Config.user_schema
     token = params["id"]
     case Schemas.get_by_user unlock_token: token do
