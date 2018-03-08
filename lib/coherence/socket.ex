@@ -79,7 +79,7 @@ defmodule Coherence.Socket do
   @doc """
   Deletes users by a list of userIDs and broadcasts back to all admins
   """
-  def handle_in(socket, %{ "users" => users }) do
+  def delete_users(socket, users) do
     exclude_me = current_user_in_list?(users, socket)
     users = if exclude_me, do: List.delete(users, socket.assigns.user.id), else: users
 
