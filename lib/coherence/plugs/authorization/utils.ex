@@ -86,4 +86,18 @@ defmodule Coherence.Authentication.Utils do
   def new_session_path(conn) do
     Module.concat(Config.web_module, Router.Helpers).session_path(conn, :new)
   end
+
+  @doc """
+  Get a random string of given length.
+
+  Returns a random url safe encoded64 string of the given length.
+  Used to generate tokens for the various modules that require unique tokens.
+  """
+  @spec random_string(integer) :: binary
+  def random_string(length) do
+    length
+    |> :crypto.strong_rand_bytes
+    |> Base.url_encode64
+    |> binary_part(0, length)
+  end
 end

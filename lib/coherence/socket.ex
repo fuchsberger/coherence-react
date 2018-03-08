@@ -3,6 +3,7 @@ defmodule Coherence.Socket do
   use Coherence.Config
 
   import Coherence.{InvitationService, LockableService, TrackableService}
+  import Coherence.Authentication.Utils, only: [random_string: 1]
 
   alias Coherence.{ConfirmableService, Messages, PasswordService, Schemas}
 
@@ -304,20 +305,6 @@ defmodule Coherence.Socket do
   end
 
   defp count(list, val), do: Enum.count(list, fn(x) -> x == val end)
-
-  @doc """
-  Get a random string of given length.
-
-  Returns a random url safe encoded64 string of the given length.
-  Used to generate tokens for the various modules that require unique tokens.
-  """
-  @spec random_string(integer) :: binary
-  def random_string(length) do
-    length
-    |> :crypto.strong_rand_bytes
-    |> Base.url_encode64
-    |> binary_part(0, length)
-  end
 
   defp broadcast(event, data) when is_binary Config.feedback_channel, do:
     apply @endpoint, :broadcast, [ Config.feedback_channel, event, data ]
