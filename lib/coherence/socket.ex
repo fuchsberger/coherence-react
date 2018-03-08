@@ -350,7 +350,7 @@ defmodule Coherence.Socket do
     user = if confirmable?(), do: Map.put(user, :confirmed, !!u.confirmed_at), else: user
   end
 
-  defp format_users(users), do: Enum.map users, fn u -> format_user(u) end)
+  defp format_users(users), do: Enum.map(users, fn u -> format_user(u) end)
 
   defp administerable?(), do:
     Config.has_option(:administerable) and Keyword.get(Config.opts, :administerable, true)
