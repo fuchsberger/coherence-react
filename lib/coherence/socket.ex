@@ -3,7 +3,7 @@ defmodule Coherence.Socket do
   use Coherence.Config
 
   import Coherence.Authentication.Utils, only: [random_string: 1]
-  import Coherence.{EmailService, InvitationService,  LockableService,
+  import Coherence.{Controller, EmailService, InvitationService,  LockableService,
     PasswordService, TrackableService}
 
   alias Coherence.{ConfirmableService, Messages, Schemas}
