@@ -7,9 +7,8 @@ defmodule Coherence.SessionController do
   use Timex
   use Coherence.Config
 
-  import Coherence.TrackableService
   import Ecto.Query
-  import Coherence.LockableService, only: [lockable_failure: 1]
+  import Coherence.{LockableService, TrackableService}
   import Coherence.Schemas, only: [schema: 1]
   # import Coherence.Rememberable, only: [hash: 1, gen_cookie: 3]
 
