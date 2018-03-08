@@ -29,6 +29,7 @@ defmodule Coherence.ConfirmableService do
 
   import Coherence.Authentication.Utils, only: [random_string: 1]
   import Coherence.EmailService
+  import Coherence.Controller
 
   alias Coherence.{Messages, Schemas}
 
