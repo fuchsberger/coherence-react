@@ -35,7 +35,7 @@ defmodule Coherence.Socket do
   @doc """
   Allows to change own password, email or name though the /settings page
   """
-  def edit_user(socket, params) do
+  def update_user(socket, params) do
     case Schemas.get_user(socket.assigns.user.id) do
       nil ->
         return_error(socket, Messages.backend().invalid_request())
@@ -57,7 +57,7 @@ defmodule Coherence.Socket do
   @doc """
   Allows to change users, given a list of users and a list of parameters
   """
-  def edit_users(socket, %{ "users" => users, "params" => params }) do
+  def update_users(socket, %{ "users" => users, "params" => params }) do
     exclude_me = current_user_in_list?(users, socket)
     users = if exclude_me,
       do: List.delete(users, socket.assigns.user.id),
