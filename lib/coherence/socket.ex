@@ -307,11 +307,13 @@ defmodule Coherence.Socket do
 
   defp count(list, val), do: Enum.count(list, fn(x) -> x == val end)
 
-  defp broadcast(event, data) when is_binary Config.feedback_channel, do:
+  defp broadcast(event, data) when is_binary Config.feedback_channel do
     apply @endpoint, :broadcast, [ Config.feedback_channel, event, data ]
+  end
 
-  defp current_user_in_list?(users, socket), do:
+  defp current_user_in_list?(users, socket) do
     current_user?(socket) and Enum.member? users, socket.assigns.user.id
+  end
 
   defp current_user?(socket), do: !!Map.has_key(socket.assigns, :user)
 
