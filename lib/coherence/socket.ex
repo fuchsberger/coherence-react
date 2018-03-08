@@ -272,7 +272,7 @@ defmodule Coherence.Socket do
     result = for i <- invitations do
       {name, email} = {Enum.at(i, 0), Enum.at(i, 1)}
       changeset = Schemas.change_invitation %{"name" => name, "email" => email}
-      case get_user_by_email email do
+      case Schemas.get_user_by_email email do
         nil ->
           token = random_string 48
           url = invitation_url(token) <> "/edit"
@@ -283,7 +283,7 @@ defmodule Coherence.Socket do
               send_user_email :invitation, invitation, url
               1
             {:error, _changeset} ->
-              case get_by_invitation email: email do
+              case Schemas.get_by_invitation email: email do
                 nil -> -1
                 _invitation -> 0
               end
