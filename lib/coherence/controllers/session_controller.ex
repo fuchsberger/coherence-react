@@ -163,9 +163,7 @@ defmodule Coherence.SessionController do
   #   |> delete_rememberable(user)
   # end
 
-  defp log_lockable_update({:error, changeset}) do
-    lockable_failure changeset
-  end
+  defp log_lockable_update({:error, changeset}), do: lockable_failure changeset
   defp log_lockable_update(_), do: :ok
 
   @spec reset_failed_attempts(conn, Ecto.Schema.t, boolean) :: conn
@@ -203,7 +201,6 @@ defmodule Coherence.SessionController do
       Map.put(params, :failed_attempts, attempts))
     |> Schemas.update
     |> log_lockable_update
-
     conn
   end
 
