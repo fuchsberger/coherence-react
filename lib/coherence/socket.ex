@@ -136,10 +136,10 @@ defmodule Coherence.Socket do
         if ConfirmableService.expired? user do
           return_error(socket, Messages.backend().confirmation_token_expired())
         else
-          changeset = changeset(:confirmation, user_schema, user, %{
+          changeset = user_schema.changeset(user, %{
             confirmation_token: nil,
             confirmed_at: DateTime.utc_now,
-            })
+            }, :confirmation)
           case Config.repo.update(changeset) do
             {:ok, user} ->
               broadcast "users_updated", %{users: [format_user(user)]}
