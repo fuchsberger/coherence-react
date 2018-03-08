@@ -65,9 +65,11 @@ defmodule Coherence.Socket do
     case Schemas.update_users(users, params) do
       {count, users} ->
         broadcast "users_updated", %{users: users}
-        if exclude_me,
-          do: return_ok socket, "You have successfully updated #{count} users! No changes were made on your account.",
-          else: return_ok socket, "You have successfully updated #{count} users!"
+        if exclude_me do
+          return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
+        else
+          return_ok socket, "You have successfully updated #{count} users!"
+        end
       _ ->
         return_error socket, "Something went wrong while updating a user!"
     end
