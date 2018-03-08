@@ -12,6 +12,7 @@ defmodule Coherence.Socket do
   @feedback_channel Config.feedback_channel
 
   @type socket :: Phoenix.Socket.t
+  @type params :: Map.t
 
   @doc """
   Create the new user account.
