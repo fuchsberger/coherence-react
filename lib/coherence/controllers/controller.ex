@@ -4,8 +4,7 @@ defmodule Coherence.Controller do
   """
   import Phoenix.Controller, only: [put_layout: 2, put_view: 2]
 
-  alias Coherence.{RememberableService, TrackableService, Messages}
-  alias Coherence.{Config, Schemas}
+  alias Coherence.{Config, RememberableService, TrackableService, Messages}
 
   require Logger
 

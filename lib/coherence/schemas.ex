@@ -61,13 +61,13 @@ defmodule Coherence.Schemas do
   end
 
   def update_users(users, params) do
-    from(u in @user_schema, where: u.id in ^users)
+    from(u in Config.user_schema, where: u.id in ^users)
     |> Config.repo.update_all([set: Map.to_list(params)], [returning: true])
   end
 
   def delete_users(users) do
-    from(u in @user_schema, where: u.id in ^users)
-    |> @repo.delete_all([returning: [:id]])
+    from(u in Config.user_schema, where: u.id in ^users)
+    |> Config.repo.delete_all([returning: [:id]])
   end
 
   Enum.each [Invitation, Rememberable, Trackable], fn module ->

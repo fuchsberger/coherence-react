@@ -188,7 +188,7 @@ defmodule Coherence.TrackableService do
     conn
   end
 
-  @spec track_unlock_token(schema, boolean)
+  @spec track_unlock_token(schema, boolean) :: any
   def track_unlock_token(_user, false), do: nil
   def track_unlock_token(user, true), do: track(user, "unlock_token")
 
