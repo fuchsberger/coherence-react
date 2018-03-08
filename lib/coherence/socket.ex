@@ -346,8 +346,8 @@ defmodule Coherence.Socket do
       inserted_at: NaiveDateTime.to_iso8601(u.inserted_at) <> "Z"
     }
     user = if administerable?(), do: Map.put(user, :admin, u.admin), else: user
-    user = if blockable?(), do: Map.put(user, :blocked, !!user.blocked_at), else: user
-    user = if confirmable?(), do: Map.put(user, :confirmed, !!user.confirmed_at), else: user
+    user = if blockable?(), do: Map.put(user, :blocked, !!u.blocked_at), else: user
+    user = if confirmable?(), do: Map.put(user, :confirmed, !!u.confirmed_at), else: user
   end
 
   defp administerable?(), do:
