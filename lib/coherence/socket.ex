@@ -48,7 +48,7 @@ defmodule Coherence.Socket do
                 track_password_reset(user, Config.user_schema.trackable_table?)
               return_ok(socket, Messages.backend().account_updated_successfully())
             {:error, changeset} ->
-              return_errors(socket, changeset)
+              return_error socket, %{errors: error_map(changeset)}
           end
     end
   end
@@ -100,7 +100,7 @@ defmodule Coherence.Socket do
   def create_confirmation(socket, params) do
     changeset = Config.user_schema.changeset(params, :email)
     if Map.has_key?(error_map(changeset), :email) do
-      return_errors(socket, changeset)
+      return_error socket, %{errors: error_map(changeset)}
     else
       case Schemas.get_user_by_email params["email"] do
         nil ->
