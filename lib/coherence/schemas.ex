@@ -61,8 +61,9 @@ defmodule Coherence.Schemas do
   end
 
   def update_users(users, params) do
+    params = Enum.map(params, fn({k, v}) -> {String.to_atom(k), v} end)
     from(u in Config.user_schema, where: u.id in ^users)
-    |> Config.repo.update_all([set: Map.to_list(params)], [returning: true])
+    |> Config.repo.update_all([set: params], [returning: true])
   end
 
   def delete_users(users) do
