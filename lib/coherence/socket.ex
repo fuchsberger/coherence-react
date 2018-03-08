@@ -65,8 +65,7 @@ defmodule Coherence.Socket do
 
     case Schemas.update_users(users, params) do
       {count, users} ->
-        broadcast "users_updated", %{users: Enum.each(users, fn(u) -> format_user u end)}
-        IO.inspect Enum.each(users, fn(u) -> format_user u end)
+        broadcast "users_updated", %{users: format_users(users)}
         if exclude_me do
           return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
         else
@@ -350,6 +349,8 @@ defmodule Coherence.Socket do
     user = if blockable?(), do: Map.put(user, :blocked, !!u.blocked_at), else: user
     user = if confirmable?(), do: Map.put(user, :confirmed, !!u.confirmed_at), else: user
   end
+
+  defp format_users(users), do: Enum.map users, fn u -> format_user(u) end)
 
   defp administerable?(), do:
     Config.has_option(:administerable) and Keyword.get(Config.opts, :administerable, true)
