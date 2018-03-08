@@ -75,7 +75,7 @@ defmodule Coherence.Socket do
   """
   def handle_in(socket, %{ "users" => users }) do
     exclude_me = current_user_in_list?(users, socket)
-    users = exclude_me, do: List.delete(users, socket.assigns.user.id), else: users
+    users = if exclude_me, do: List.delete(users, socket.assigns.user.id), else: users
 
     if current_user_in_list?(users, socket) do
       return_error socket, "You cannot delete yourself. Operation cancelled."
