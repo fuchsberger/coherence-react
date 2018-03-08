@@ -55,7 +55,9 @@ defmodule Coherence.Socket do
   """
   def edit_users(socket, %{ "users" => users, "params" => params }) do
     exclude_me = current_user_in_list?(users, socket)
-    users = exclude_me, do: List.delete(users, socket.assigns.user.id), else: users
+    users = if exclude_me,
+      do: List.delete(users, socket.assigns.user.id),
+      else: users
 
     case Schemas.update_users(users, params) do
       {count, users} ->
