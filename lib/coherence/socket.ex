@@ -350,6 +350,15 @@ defmodule Coherence.Socket do
     user = if confirmable?(), do: Map.put(user, :confirmed, !!user.confirmed_at), else: user
   end
 
+  defp administerable?(), do:
+    Config.has_option(:administerable) and Keyword.get(unquote(opts), :administerable, true)
+
+  defp blockable?(), do:
+    Config.has_option(:blockable) and Keyword.get(unquote(opts), :blockable, true)
+
+  defp confirmable?(), do:
+    Config.has_option(:confirmable) and Keyword.get(unquote(opts), :confirmable, true)
+
   # Generates a map with all invalid fields and their first error
   defp error_map(changeset), do:
     Map.new(changeset.errors, fn ({k, v}) -> {k, elem(v, 0)} end)
