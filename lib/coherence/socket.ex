@@ -276,7 +276,7 @@ defmodule Coherence.Socket do
         nil ->
           token = random_string 48
           url = invitation_url(token) <> "/edit"
-          changeset = put_change(changeset, :token, token)
+          changeset = Ecto.Changeset.put_change(changeset, :token, token)
 
           case create changeset do
             {:ok, invitation} ->
