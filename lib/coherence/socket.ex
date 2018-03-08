@@ -271,7 +271,7 @@ defmodule Coherence.Socket do
   def create_invitations(socket, %{"invitations" => invitations}) do
     result = for i <- invitations do
       {name, email} = {Enum.at(i, 0), Enum.at(i, 1)}
-      changeset = change_invitation %{"name" => name, "email" => email}
+      changeset = Schemas.change_invitation %{"name" => name, "email" => email}
       case get_user_by_email email do
         nil ->
           token = random_string 48
