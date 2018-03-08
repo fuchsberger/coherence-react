@@ -345,9 +345,9 @@ defmodule Coherence.Socket do
       name: u.name,
       inserted_at: NaiveDateTime.to_iso8601(u.inserted_at) <> "Z"
     }
-    user = if administerable?(), do: Map.put(user, :admin, admin?(u)), else: user
-    user = if blockable?(), do: Map.put(user, :blocked, blocked?(u)), else: user
-    user = if confirmable?(), do: Map.put(user, :confirmed, confirmed?(u)), else: user
+    user = if administerable?(), do: Map.put(user, :admin, u.admin), else: user
+    user = if blockable?(), do: Map.put(user, :blocked, !!user.blocked_at), else: user
+    user = if confirmable?(), do: Map.put(user, :confirmed, !!user.confirmed_at), else: user
   end
 
   # Generates a map with all invalid fields and their first error
