@@ -66,6 +66,7 @@ defmodule Coherence.Socket do
     case Schemas.update_users(users, params) do
       {count, users} ->
         broadcast "users_updated", %{users: Enum.each(users, fn(u) -> format_user u end)}
+        IO.inspect Enum.each(users, fn(u) -> format_user u end)
         if exclude_me do
           return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
         else
