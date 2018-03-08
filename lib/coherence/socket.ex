@@ -3,10 +3,10 @@ defmodule Coherence.Socket do
   use Coherence.Config
 
   import Coherence.Authentication.Utils, only: [random_string: 1]
-  import Coherence.{EmailService, InvitationService, LockableService,
-    TrackableService}
+  import Coherence.{EmailService, InvitationService,  LockableService,
+    PasswordService, TrackableService}
 
-  alias Coherence.{ConfirmableService, Messages, PasswordService, Schemas}
+  alias Coherence.{ConfirmableService, Messages, Schemas}
 
   @endpoint Module.concat(Config.web_module, Endpoint)
   @feedback_channel Config.feedback_channel
