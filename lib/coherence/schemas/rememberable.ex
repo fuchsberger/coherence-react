@@ -67,12 +67,8 @@ defmodule Coherence.Rememberable do
 
       def created_at, do: Timex.now
 
-      def gen_token do
-        Coherence.Socket.random_string 24
-      end
-      def gen_series do
-        Coherence.Socket.random_string 10
-      end
+      def gen_token, do: Coherence.Authentication.Utils.random_string 24
+      def gen_series, do: Coherence.Authentication.Utils.random_string 10
 
       defoverridable [
         create_login: 1, update_login: 1, get_valid_login: 3, delete_all: 1,

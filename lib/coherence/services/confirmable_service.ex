@@ -27,7 +27,8 @@ defmodule Coherence.ConfirmableService do
   use Coherence.Config
   use CoherenceWeb, :service
 
-  import Coherence.Socket, only: [random_string: 1]
+  import Coherence.Authentication.Utils, only: [random_string: 1]
+  import Coherence.EmailService
 
   alias Coherence.{Messages, Schemas}
 
