@@ -351,13 +351,13 @@ defmodule Coherence.Socket do
   end
 
   defp administerable?(), do:
-    Config.has_option(:administerable) and Keyword.get(unquote(opts), :administerable, true)
+    Config.has_option(:administerable) and Keyword.get(Config.opts, :administerable, true)
 
   defp blockable?(), do:
-    Config.has_option(:blockable) and Keyword.get(unquote(opts), :blockable, true)
+    Config.has_option(:blockable) and Keyword.get(Config.opts, :blockable, true)
 
   defp confirmable?(), do:
-    Config.has_option(:confirmable) and Keyword.get(unquote(opts), :confirmable, true)
+    Config.has_option(:confirmable) and Keyword.get(Config.opts, :confirmable, true)
 
   # Generates a map with all invalid fields and their first error
   defp error_map(changeset), do:
