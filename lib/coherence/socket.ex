@@ -85,7 +85,7 @@ defmodule Coherence.Socket do
     if current_user_in_list?(users, socket) do
       return_error socket, "You cannot delete yourself. Operation cancelled."
     else
-      case delete_users users do
+      case Schemas.delete_users users do
         {count, users} ->
           broadcast "users_deleted", %{users: Enum.map(users, fn(v) -> v.id end)}
           return_info socket, "Successfully deleted #{count} user#{plural(count, :s)}!"
