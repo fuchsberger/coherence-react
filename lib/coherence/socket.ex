@@ -63,7 +63,7 @@ defmodule Coherence.Socket do
       {count, users} ->
         broadcast "users_updated", %{users: users}
         if exclude_me,
-          do: return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
+          do: return_ok socket, "You have successfully updated #{count} users! No changes were made on your account.",
           else: return_ok socket, "You have successfully updated #{count} users!"
       _ ->
         return_error socket, "Something went wrong while updating a user!"
