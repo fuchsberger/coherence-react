@@ -88,7 +88,7 @@ defmodule Coherence.Socket do
       case Schemas.delete_users users do
         {count, users} ->
           broadcast "users_deleted", %{users: Enum.map(users, fn(v) -> v.id end)}
-          return_info socket, "Successfully deleted #{count} user#{plural(count, :s)}!"
+          return_ok socket, "Successfully deleted #{count} user#{plural(count, :s)}!"
         nil ->
           return_error socket, "Something went wrong while deleting users!"
       end
