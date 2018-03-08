@@ -77,7 +77,7 @@ defmodule Coherence.Socket do
   end
 
   @doc """
-  Deletes users by a list of userIDs and broadcasts back to all admins
+  Deletes users by a list of userIDs and (optionally) broadcasts back to all admins
   """
   def delete_users(socket, users) do
     exclude_me = current_user_in_list?(users, socket)
@@ -319,7 +319,7 @@ defmodule Coherence.Socket do
     current_user?(socket) and Enum.member? users, socket.assigns.user.id
   end
 
-  defp current_user?(socket), do: !!Map.has_key(socket.assigns, :user)
+  defp current_user?(socket), do: !!Map.has_key?(socket.assigns, :user)
 
 
   defp plural(integer), do: integer > 1
