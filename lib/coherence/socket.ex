@@ -278,7 +278,7 @@ defmodule Coherence.Socket do
           url = invitation_url(token) <> "/edit"
           changeset = Ecto.Changeset.put_change(changeset, :token, token)
 
-          case create changeset do
+          case Schemas.create_invitation changeset do
             {:ok, invitation} ->
               send_user_email :invitation, invitation, url
               1
