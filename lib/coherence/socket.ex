@@ -17,7 +17,7 @@ defmodule Coherence.Socket do
   @doc """
   Allows to block / unblock users
   """
-  def block_users(socket, %{ "blocked_msg" => msg } = params) do
+  def block_users(socket, %{ "users" => users, "params" => %{ "blocked_msg" => msg }}) do
     exclude_me = current_user_in_list?(users, socket)
     users = if exclude_me,
       do: List.delete(users, socket.assigns.user.id),
