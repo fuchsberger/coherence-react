@@ -15,6 +15,33 @@ defmodule Coherence.Socket do
   @type params :: Map.t
 
   @doc """
+  Allows to block / unblock users
+  """
+  def block_users(socket, %{ "blocked_msg" => msg } = params) do
+    exclude_me = current_user_in_list?(users, socket)
+    users = if exclude_me,
+      do: List.delete(users, socket.assigns.user.id),
+      else: users
+
+    case Config.user_schema.validate_blocked(msg) do
+      {:ok, changes } ->
+        case Schemas.update_users(users, changes) do
+          {count, users} ->
+            broadcast "users_updated", %{users: format_users(users)}
+            if exclude_me do
+              return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
+            else
+              return_ok socket, "You have successfully updated #{count} users!"
+            end
+          _ ->
+            return_error socket, "Something went wrong while updating users!"
+        end
+      {:error, flash } ->
+        return_error(socket, flash)
+    end
+  end
+
+  @doc """
   Create the new user account.
   Create and send a confirmation, if this option is enabled.
   Broadcasts updated user to feedback channel, if this option is enabled.

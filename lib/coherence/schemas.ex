@@ -60,8 +60,13 @@ defmodule Coherence.Schemas do
     Config.repo.update! user.__struct__.changeset(user, params)
   end
 
-  def update_users(users, params) do
+  def update_users(users, params) when is_map params do
     params = Enum.map(params, fn({k, v}) -> {String.to_atom(k), v} end)
+    from(u in Config.user_schema, where: u.id in ^users)
+    |> Config.repo.update_all([set: params], [returning: true])
+  end
+
+  def update_users(users, params) when is_list params do
     from(u in Config.user_schema, where: u.id in ^users)
     |> Config.repo.update_all([set: params], [returning: true])
   end
