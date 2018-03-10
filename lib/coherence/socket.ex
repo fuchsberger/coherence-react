@@ -17,13 +17,13 @@ defmodule Coherence.Socket do
   @doc """
   Allows to block / unblock users
   """
-  def block_users(socket, %{ "users" => users, "params" => %{ "blocked_msg" => msg }}) do
+  def block_users(socket, %{ "users" => users, "params" => %{ "reason" => reason }}) do
     exclude_me = current_user_in_list?(users, socket)
     users = if exclude_me,
       do: List.delete(users, socket.assigns.user.id),
       else: users
 
-    case Config.user_schema.validate_blocked(msg) do
+    case Config.user_schema.validate_blocked(reason) do
       {:ok, changes } ->
         case Schemas.update_users(users, changes) do
           {count, users} ->
