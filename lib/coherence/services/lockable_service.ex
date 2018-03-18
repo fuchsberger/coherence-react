@@ -31,7 +31,7 @@ defmodule Coherence.LockableService do
 
   import Coherence.Authentication.Utils, only: [random_string: 1]
   import Coherence.EmailService
-  alias Coherence.{Controller, Schemas}
+  alias Coherence.{Controller, Messages, Schemas}
 
   require Logger
 

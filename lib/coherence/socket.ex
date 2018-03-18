@@ -116,7 +116,7 @@ defmodule Coherence.Socket do
       case Schemas.delete_users users do
         {count, users} ->
           broadcast "users_deleted", %{users: Enum.map(users, fn(v) -> v.id end)}
-          return_ok socket, "Successfully deleted #{count} user#{plural(count, :s)}!"
+          return_ok socket, "Successfully deleted #{count} user#{plural(count)}!"
         nil ->
           return_error socket, "Something went wrong while deleting users!"
       end
@@ -348,19 +348,14 @@ defmodule Coherence.Socket do
 
   defp current_user?(socket), do: !!Map.has_key?(socket.assigns, :user)
 
-
-  defp plural(integer), do: integer > 1
-
-  defp plural(integer, :s) do
+  defp plural(integer) do
     if integer > 1, do: "s", else: ""
   end
 
   # return flash message or map
-  defp return_ok(socket, data \\ %{})
   defp return_ok(socket, data) when is_binary(data), do: {:reply, {:ok, %{ flash: data}}, socket}
   defp return_ok(socket, data) when is_map(data),    do: {:reply, {:ok, data}, socket}
 
-  defp return_error(socket, data \\ %{})
   defp return_error(socket, data) when is_binary(data), do: {:reply, {:ok, %{ flash: data}}, socket}
   defp return_error(socket, data) when is_map(data),    do: {:reply, {:ok, data}, socket}
 
@@ -372,9 +367,10 @@ defmodule Coherence.Socket do
       name: u.name,
       inserted_at: NaiveDateTime.to_iso8601(u.inserted_at) <> "Z"
     }
-    user = if administerable?(), do: Map.put(user, :admin, u.admin), else: user
-    user = if blockable?(), do: Map.put(user, :blocked, !!u.blocked_at), else: user
-    user = if confirmable?(), do: Map.put(user, :confirmed, !!u.confirmed_at), else: user
+    user = if administerable?(), do: Map.put(user, :admin, u.admin)
+    user = if blockable?(), do: Map.put(user, :blocked, !!u.blocked_at)
+    user = if confirmable?(), do: Map.put(user, :confirmed, !!u.confirmed_at)
+    user
   end
 
   defp format_users(users), do: Enum.map(users, fn u -> format_user(u) end)

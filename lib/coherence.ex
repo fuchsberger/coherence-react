@@ -189,34 +189,34 @@ defmodule Coherence do
 
   Run `$ mix help coherence.install` for more information.
 
-### Clean
+  ### Clean
 
-The following examples illustrate how to remove the files created by the installer:
+  The following examples illustrate how to remove the files created by the installer:
 
-      # Clean all the installed files
-      $ mix coherence.clean --all
+        # Clean all the installed files
+        $ mix coherence.clean --all
 
-      # Clean only the installed view and template files
-      $ mix coherence.clean --views --templates
+        # Clean only the installed view and template files
+        $ mix coherence.clean --views --templates
 
-      # Clean all but the models
-      $ mix coherence.clean --all --no-models
+        # Clean all but the models
+        $ mix coherence.clean --all --no-models
 
-      # Prompt once to confirm the removal
-      $ mix coherence.clean --all --confirm-once
+        # Prompt once to confirm the removal
+        $ mix coherence.clean --all --confirm-once
 
-After installation, if you later want to remove one more options, here are a couple examples:
+  After installation, if you later want to remove one more options, here are a couple examples:
 
-    # Clean one option
-    $ mix coherence.clean --options=recoverable
+      # Clean one option
+      $ mix coherence.clean --options=recoverable
 
-    # Clean several options without confirmation
-    $ mix coherence.clicked --no-confirm --options="recoverable unlockable-with-token"
+      # Clean several options without confirmation
+      $ mix coherence.clicked --no-confirm --options="recoverable unlockable-with-token"
 
-    # Test the uninstaller without removing files
-    $ mix coherence.clicked --dry-run --options="recoverable unlockable-with-token"
+      # Test the uninstaller without removing files
+      $ mix coherence.clicked --dry-run --options="recoverable unlockable-with-token"
 
-Run `$ mix help coherence.install` or `$ mix help coherence.install` for more information.
+  Run `$ mix help coherence.install` or `$ mix help coherence.install` for more information.
   """
   use Application
 

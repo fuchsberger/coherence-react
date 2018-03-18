@@ -84,6 +84,7 @@ defmodule Coherence.Config do
     :logged_in_url,
     {:confirmable_path, "/account/confirm"},
     {:recoverable_path, "/account/reset_password"},
+    {:inviteable_path,  "/account/invitation"},
     {:unlock_path, "/account/unlock"},
     :email_from_name,
     :email_from_email,

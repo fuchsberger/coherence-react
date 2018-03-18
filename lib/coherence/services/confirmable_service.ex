@@ -141,7 +141,7 @@ defmodule Coherence.ConfirmableService do
 
   defp confirmation_url(token), do:
     apply(Module.concat(Config.web_module, Endpoint), :url, [])
-    <> Config.confirm_user_path <> "/" <> token
+    <> Config.confirmable_path <> "/" <> token
 
   defp for_option(other \\ false, fun) do
     if Config.has_option(:confirmable), do: fun.(), else: other
