@@ -15,7 +15,7 @@ defmodule Coherence.PasswordService do
   # Get the configured password reset url (requires token)
   def password_url(token), do:
     apply(Module.concat(Config.web_module, Endpoint), :url, [])
-      <> Config.password_reset_path <> "/" <> token
+      <> Config.recoverable_path <> "/" <> token
 
   def clear_password_params(params \\ %{}) do
     params
