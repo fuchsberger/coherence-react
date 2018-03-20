@@ -62,22 +62,26 @@ defmodule Coherence.Socket do
   @doc """
   Allows to change own password, email or name though the /settings page
   """
-  def update_user(socket, params) do
-    case Schemas.get_user(socket.assigns.user.id) do
-      nil ->
-        return_error(socket, Messages.backend().invalid_request())
-      user ->
-        Config.user_schema.changeset(user, params, :settings)
-        |> Schemas.update
-        |> case do
-            {:ok, user} ->
-              broadcast "users_updated", %{users: [format_user(user)]}
-              if params["password_current"], do:
-                track_password_reset(user, Config.user_schema.trackable_table?)
-              return_ok(socket, Messages.backend().account_updated_successfully())
-            {:error, changeset} ->
-              return_error socket, %{errors: error_map(changeset)}
-          end
+  def update_profile(socket, params) do
+    if is_authenticated?(socket) do
+      case Schemas.get_user(socket.assigns.user.id) do
+        nil ->
+          return_error(socket, Messages.backend().invalid_request())
+        user ->
+          Config.user_schema.changeset(user, params, :settings)
+          |> Schemas.update
+          |> case do
+              {:ok, user} ->
+                broadcast "users_updated", %{users: [format_user(user)]}
+                if params["password_current"], do:
+                  track_password_reset(user, Config.user_schema.trackable_table?)
+                return_ok(socket, Messages.backend().account_updated_successfully())
+              {:error, changeset} ->
+                return_error socket, %{errors: error_map(changeset)}
+            end
+      end
+    else
+      return_error socket, Messages.backend().invalid_request()
     end
   end
 
@@ -343,10 +347,10 @@ defmodule Coherence.Socket do
   end
 
   defp current_user_in_list?(users, socket) do
-    current_user?(socket) and Enum.member? users, socket.assigns.user.id
+    is_authenticated?(socket) and Enum.member? users, socket.assigns.user.id
   end
 
-  defp current_user?(socket), do: !!Map.has_key?(socket.assigns, :user)
+  defp is_authenticated?(socket), do: !!Map.has_key?(socket.assigns, :user)
 
   defp plural(integer) do
     if integer > 1, do: "s", else: ""
