@@ -130,7 +130,7 @@ defmodule Coherence.SessionController do
     |> reset_failed_attempts(user, lockable?)
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
     |> save_rememberable(user, remember)
-    |> redirect_to([to: conn.request_path])
+    |> redirect([to: conn.request_path])
     # |> respond_with(
     #   :session_create_success,
     #   %{
