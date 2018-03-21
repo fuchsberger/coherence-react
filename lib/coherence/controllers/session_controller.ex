@@ -137,7 +137,7 @@ defmodule Coherence.SessionController do
     #     notice: Messages.backend().signed_in_successfully(),
     #     params: params
     #   }
-    )
+    # )
   end
 
   @doc """
