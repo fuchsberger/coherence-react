@@ -132,26 +132,12 @@ defmodule Coherence.SessionController do
     |> reset_failed_attempts(user, lockable?)
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
     |> save_rememberable(user, remember)
-    |> assign_user_data(user, :socket_bypass)
-    |> create_user_token(user, Config.user_token, :socket_bypass)
-
-    IO.inspect conn.assigns
-    # conn
-    # |> assign(:redirect, path)
-    # |> put_flash(:notice, notice)
-    # |> redirect([to: "/"])
-    conn |> json(%{
-      redirect: params["redirect"],
-      user_token: conn.assigns[:user_token]
-    })
-
-    # |> respond_with(
-    #   :session_create_success,
-    #   %{
-    #     notice: Messages.backend().signed_in_successfully(),
-    #     path: params["redirect"]
-    #   }
-    # )
+    |> assign_user_data(user, :current_user)
+    |> create_user_token(user, Config.user_token, :current_user)
+    |> json(%{
+        redirect: params["redirect"],
+        user_token: conn.assigns[:user_token]
+      })
   end
 
   @doc """
