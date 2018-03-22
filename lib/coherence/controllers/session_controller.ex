@@ -132,11 +132,13 @@ defmodule Coherence.SessionController do
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
     |> save_rememberable(user, remember)
     |> Session.call(Session.init([]))
+
+    IO.inspect conn.assigns
     # conn
     # |> assign(:redirect, path)
     # |> put_flash(:notice, notice)
     # |> redirect([to: "/"])
-    |> json(%{
+    conn |> json(%{
       redirect: params["redirect"],
       user_token: conn.assigns[:user_token]
     })
