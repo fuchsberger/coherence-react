@@ -10,6 +10,7 @@ defmodule Coherence.SessionController do
   import Ecto.Query
   import Coherence.{LockableService, TrackableService}
   import Coherence.Schemas, only: [schema: 1]
+  import Coherence.Authentication.Utils, only: [create_user_token: 4]
   # import Coherence.Rememberable, only: [hash: 1, gen_cookie: 3]
 
   # alias Coherence.{Rememberable}
@@ -131,8 +132,7 @@ defmodule Coherence.SessionController do
     |> reset_failed_attempts(user, lockable?)
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
     |> save_rememberable(user, remember)
-    |> fetch_session()
-    |> Session.call(Session.init([]))
+    |> create_user_token(user, nil, Config.schema_key())
 
     IO.inspect conn.assigns
     # conn
