@@ -134,7 +134,7 @@ defmodule Coherence.SessionController do
     |> save_rememberable(user, remember)
     |> assign_user_data(user, :current_user)
     |> create_user_token(user, Config.user_token, :current_user)
-    |> json(%{ token: conn.assigns[:user_token] })
+    json(conn, %{ userToken: conn.assigns[:user_token] })
   end
 
   @doc """
