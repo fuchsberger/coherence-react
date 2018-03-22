@@ -131,6 +131,7 @@ defmodule Coherence.SessionController do
     |> reset_failed_attempts(user, lockable?)
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
     |> save_rememberable(user, remember)
+    |> fetch_session()
     |> Session.call(Session.init([]))
 
     IO.inspect conn.assigns
