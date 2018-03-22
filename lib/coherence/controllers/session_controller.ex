@@ -23,9 +23,6 @@ defmodule Coherence.SessionController do
   @type conn :: Plug.Conn.t
   @type params :: Map.t
 
-  # plug :layout_view, view: Coherence.SessionView, caller: __MODULE__
-  plug :redirect_logged_in when action in [:create]
-
   @doc false
   @spec login_cookie() :: String.t
   def login_cookie, do: "coherence_login"
@@ -58,28 +55,33 @@ defmodule Coherence.SessionController do
   """
   @spec create(conn, params) :: conn
   def create(conn, params) do
-    user_schema = Config.user_schema()
-    lockable? = user_schema.lockable?()
-    login_field = Config.login_field()
-    login_field_str = to_string login_field
-    login = params["session"][login_field_str]
-    remember = if Config.user_schema.rememberable?(), do: params["remember"], else: false
-    user = Schemas.get_by_user [{login_field, login}]
-    if valid_user_login? user, params do
-      if confirmed_access? user do
-        do_lockable(conn, [user, user_schema, remember, lockable?],
-          user_schema.lockable?() and user_schema.locked?(user))
+    if Coherence.logged_in?(conn) do
+      conn
+      |> put_status(409)
+      |> json(%{flash: Messages.backend().already_logged_in() })
+    else
+      user_schema = Config.user_schema()
+      lockable? = user_schema.lockable?()
+      login_field = Config.login_field()
+      login = params["session"][to_string(login_field)]
+      remember = if Config.user_schema.rememberable?(), do: params["remember"], else: false
+      user = Schemas.get_by_user [{login_field, login}]
+      if valid_user_login? user, params do
+        if confirmed_access? user do
+          do_lockable(conn, [user, user_schema, remember, lockable?],
+            user_schema.lockable?() and user_schema.locked?(user))
+        else
+          conn
+          |> put_status(406)
+          |> json( %{ flash: Messages.backend().you_must_confirm_your_account() })
+        end
       else
         conn
-        |> put_status(406)
-        |> json( %{ flash: Messages.backend().you_must_confirm_your_account() })
+        |> track_failed_login(user, user_schema.trackable_table?())
+        |> failed_login(user, lockable?)
+        |> put_status(401)
+        |> json( %{ error: "credentials" })
       end
-    else
-      conn
-      |> track_failed_login(user, user_schema.trackable_table?())
-      |> failed_login(user, lockable?)
-      |> put_status(401)
-      |> json( %{ error: "credentials" })
     end
   end
 
@@ -129,17 +131,6 @@ defmodule Coherence.SessionController do
     |> put_status(204)
     |> json(%{})
   end
-
-  # @doc """
-  # Delete the user session.
-  # """
-  # def delete(conn) do
-  #   user = conn.assigns[Config.assigns_key()]
-  #   Config.auth_module()
-  #   |> apply(Config.delete_login(), [conn])
-  #   |> track_logout(user, user.__struct__.trackable?())
-  #   |> delete_rememberable(user)
-  # end
 
   defp log_lockable_update({:error, changeset}), do: lockable_failure changeset
   defp log_lockable_update(_), do: :ok

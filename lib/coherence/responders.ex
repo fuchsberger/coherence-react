@@ -1,7 +1,5 @@
 defmodule Coherence.Responders do
 
-  @callback session_already_logged_in(conn :: term, opts :: term) :: term
-
   @callback registration_create_success(conn :: term, opts :: term) :: term
   @callback registration_create_error(conn :: term, opts :: term) :: term
   @callback registration_update_success(conn :: term, opts :: term) :: term

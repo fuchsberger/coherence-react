@@ -141,22 +141,6 @@ defmodule Coherence.Controller do
     end
   end
 
-  @doc """
-  Plug to redirect already logged in users.
-  """
-  @spec redirect_logged_in(conn, params) :: conn
-  def redirect_logged_in(conn, _params) do
-    if Coherence.logged_in?(conn) do
-      conn
-      |> respond_with(
-        :session_already_logged_in,
-        %{info: Messages.backend().already_logged_in()}
-      )
-    else
-      conn
-    end
-  end
-
   @spec redirect_to(conn, atom, params) :: conn
   def redirect_to(conn, path, params) do
     apply(Coherence.Redirects, path, [conn, params])

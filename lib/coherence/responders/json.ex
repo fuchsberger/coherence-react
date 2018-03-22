@@ -8,14 +8,6 @@ defmodule Responders.Json do
       import Coherence.Controller
       import Plug.Conn, only: [put_status: 2, send_resp: 3, halt: 1]
 
-      def session_already_logged_in(conn, opts \\ %{})
-      def session_already_logged_in(conn, %{info: info}) do
-        conn
-        |> put_status(409)
-        |> render(:error, error: info)
-        |> halt
-      end
-
       def registration_create_success(conn, opts \\ %{})
       def registration_create_success(conn, %{user: user}) do
         conn
@@ -214,8 +206,6 @@ defmodule Responders.Json do
       end
 
       defoverridable [
-        session_already_logged_in: 2,
-
         registration_create_success: 2,
         registration_create_error: 2,
         registration_update_success: 2,

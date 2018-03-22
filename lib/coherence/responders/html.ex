@@ -12,14 +12,6 @@ defmodule Responders.Html do
 
       @page_view Module.concat(Config.web_module, PageView)
 
-      def session_already_logged_in(conn, opts \\ %{})
-      def session_already_logged_in(conn, %{info: info}) do
-        conn
-        |> put_flash(:info, info)
-        |> redirect(to: logged_in_url())
-        |> halt
-      end
-
       def registration_create_success(conn, opts \\ %{})
       def registration_create_success(conn, %{params: params}) do
         conn
@@ -226,8 +218,6 @@ defmodule Responders.Html do
       end
 
       defoverridable [
-        session_already_logged_in: 2,
-
         registration_create_success: 2,
         registration_create_error: 2,
         registration_update_success: 2,
