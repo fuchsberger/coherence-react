@@ -9,7 +9,6 @@ defmodule Coherence.Socket do
   alias Coherence.{ConfirmableService, Messages, Schemas}
 
   @endpoint Module.concat(Config.web_module, Endpoint)
-  @feedback_channel Config.feedback_channel
 
   @type socket :: Phoenix.Socket.t
   @type params :: Map.t
@@ -342,7 +341,7 @@ defmodule Coherence.Socket do
 
   defp count(list, val), do: Enum.count(list, fn(x) -> x == val end)
 
-  defp broadcast(event, data) when is_binary @feedback_channel do
+  defp broadcast(event, data) do
     apply @endpoint, :broadcast, [ Config.feedback_channel, event, data ]
   end
 

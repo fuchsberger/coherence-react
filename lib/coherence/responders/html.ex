@@ -6,7 +6,7 @@ defmodule Responders.Html do
 
       import Phoenix.Controller, only: [redirect: 2, put_flash: 3, render: 3, render: 4]
       import Coherence.Controller
-      import Plug.Conn, only: [put_status: 2, halt: 1]
+      import Plug.Conn, only: [assign: 3, put_status: 2, halt: 1]
 
       alias Coherence.Config
 
@@ -28,8 +28,9 @@ defmodule Responders.Html do
       def session_create_success(conn, opts \\ %{})
       def session_create_success(conn, %{notice: notice, path: path}) do
         conn
+        |> assign(:redirect, path)
         |> put_flash(:notice, notice)
-        |> redirect([to: path)
+        |> redirect([to: "/"])
       end
 
       def session_create_error_locked(conn, opts \\ %{})
