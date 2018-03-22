@@ -83,6 +83,15 @@ defmodule Coherence.Authentication.Utils do
     end
   end
 
+  def create_user_token(conn, user) do
+    token = case Config.token_generator do
+      {mod, fun, args} -> apply(mod, fun, [conn, user | args])
+      fun when is_function(fun) -> fun.(conn, user)
+      other -> raise "Invalid Config.token_generator option, other: #{inspect other}"
+    end
+    assign(conn, Config.token_assigns_key, token)
+  end
+
   def new_session_path(conn) do
     Module.concat(Config.web_module, Router.Helpers).session_path(conn, :new)
   end

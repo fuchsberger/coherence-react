@@ -1,9 +1,5 @@
 defmodule Coherence.Responders do
 
-  @callback session_create_success(conn :: term, opts :: term) :: term
-  @callback session_create_error(conn :: term, opts :: term) :: term
-  @callback session_create_error_locked(conn :: term, opts :: term) :: term
-  @callback session_delete_success(conn :: term, opts :: term) :: term
   @callback session_already_logged_in(conn :: term, opts :: term) :: term
 
   @callback registration_create_success(conn :: term, opts :: term) :: term

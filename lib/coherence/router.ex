@@ -46,12 +46,6 @@ defmodule Coherence.Router do
 
       if Coherence.Config.has_action?(:authenticatable, :delete), do:
       post "/logout", Coherence.SessionController, :delete
-
-      # if Coherence.Config.has_action?(:authenticatable, :create), do:
-      # post "/login", Coherence.SessionController, :create
-
-      # if Coherence.Config.has_action?(:authenticatable, :delete), do:
-      # post "/logout", Coherence.SessionController, :delete
     end
   end
 end

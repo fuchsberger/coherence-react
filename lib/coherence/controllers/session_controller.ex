@@ -10,11 +10,10 @@ defmodule Coherence.SessionController do
   import Ecto.Query
   import Coherence.{LockableService, TrackableService}
   import Coherence.Schemas, only: [schema: 1]
-  import Coherence.Authentication.Utils, only: [assign_user_data: 3, create_user_token: 4]
+  import Coherence.Authentication.Utils, only: [create_user_token: 2]
   # import Coherence.Rememberable, only: [hash: 1, gen_cookie: 3]
 
   # alias Coherence.{Rememberable}
-  alias Coherence.Authentication.Session
   alias Coherence.{ConfirmableService, Messages}
   alias Coherence.Schemas
 
@@ -37,10 +36,6 @@ defmodule Coherence.SessionController do
   @spec get_login_cookie(conn) :: String.t
   def get_login_cookie(conn) do
     conn.cookies[Config.login_cookie]
-  end
-
-  defp rememberable_enabled? do
-    if Config.user_schema.rememberable?(), do: true, else: false
   end
 
   @doc """
@@ -68,28 +63,23 @@ defmodule Coherence.SessionController do
     login_field = Config.login_field()
     login_field_str = to_string login_field
     login = params["session"][login_field_str]
-    new_bindings = [{login_field, login}, remember: rememberable_enabled?()]
     remember = if Config.user_schema.rememberable?(), do: params["remember"], else: false
     user = Schemas.get_by_user [{login_field, login}]
     if valid_user_login? user, params do
       if confirmed_access? user do
-        do_lockable(conn, login_field, [user, user_schema, remember, lockable?, remember, params],
+        do_lockable(conn, [user, user_schema, remember, lockable?],
           user_schema.lockable?() and user_schema.locked?(user))
       else
-        respond_with(
-          conn,
-          :session_create_error,
-          %{
-            new_bindings: new_bindings,
-            error: Messages.backend().you_must_confirm_your_account()
-          }
-        )
+        conn
+        |> put_status(406)
+        |> json( %{ flash: Messages.backend().you_must_confirm_your_account() })
       end
     else
       conn
       |> track_failed_login(user, user_schema.trackable_table?())
       |> failed_login(user, lockable?)
-      |> respond_with(:session_create_error, %{new_bindings: new_bindings})
+      |> put_status(401)
+      |> json( %{ error: "credentials" })
     end
   end
 
@@ -104,23 +94,14 @@ defmodule Coherence.SessionController do
   end
   defp valid_user_login?(_user, _params), do: false
 
-  defp do_lockable(conn, login_field, _, true) do
+  defp do_lockable(conn, _, true) do
     conn
-    |> assign(:locked, true)
-    |> respond_with(
-      :session_create_error_locked,
-      %{
-        params: [
-          {login_field, ""},
-          remember: rememberable_enabled?()
-        ],
-        error: Messages.backend().too_many_failed_login_attempts()
-      }
-    )
+    |> put_status(423)
+    |> json( %{ flash: Messages.backend().too_many_failed_login_attempts() })
   end
 
-  defp do_lockable(conn, _login_field, opts, false) do
-    [user, user_schema, remember, lockable?, remember, params] = opts
+  defp do_lockable(conn, opts, false) do
+    [user, user_schema, remember, lockable?] = opts
     conn = if lockable? && user.locked_at() do
       unlock!(user)
       track_unlock conn, user, user_schema.trackable_table?()
@@ -132,22 +113,21 @@ defmodule Coherence.SessionController do
     |> reset_failed_attempts(user, lockable?)
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
     |> save_rememberable(user, remember)
-    |> assign_user_data(user, :current_user)
-    |> create_user_token(user, Config.user_token, :current_user)
+    |> create_user_token(user)
+    |> put_status(201)
     json(conn, %{ userToken: conn.assigns[:user_token] })
   end
 
   @doc """
   Logout the user.
-
   Delete the user's session, track the logout and delete the rememberable cookie.
   """
   @spec delete(conn, params) :: conn
-  def delete(conn, params) do
+  def delete(conn, _params) do
     conn
     |> logout_user
+    |> put_status(204)
     |> json(%{})
-    # |> respond_with(:session_delete_success, %{params: params})
   end
 
   # @doc """

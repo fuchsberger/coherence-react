@@ -12,41 +12,6 @@ defmodule Responders.Html do
 
       @page_view Module.concat(Config.web_module, PageView)
 
-      def session_create_error(conn, opts \\ %{})
-      def session_create_error(conn, %{new_bindings: new_bindings, error: error}) do
-        conn
-        |> put_flash(:error, error)
-        |> put_status(406)
-        |> render(@page_view, :index, new_bindings)
-      end
-      def session_create_error(conn, %{new_bindings: new_bindings}) do
-        conn
-        |> put_status(401)
-        |> render(@page_view, :index, new_bindings)
-      end
-
-      def session_create_success(conn, opts \\ %{})
-      def session_create_success(conn, %{notice: notice, path: path}) do
-        conn
-        |> assign(:redirect, path)
-        |> put_flash(:notice, notice)
-        |> redirect([to: "/"])
-      end
-
-      def session_create_error_locked(conn, opts \\ %{})
-      def session_create_error_locked(conn, %{error: error, params: params}) do
-        conn
-        |> put_flash(:error, error)
-        |> put_status(423)
-        |> render(@page_view, :index, params)
-      end
-
-      def session_delete_success(conn, opts \\ %{})
-      def session_delete_success(conn, %{params: params}) do
-        conn
-        |> redirect_to(:session_delete, params)
-      end
-
       def session_already_logged_in(conn, opts \\ %{})
       def session_already_logged_in(conn, %{info: info}) do
         conn
@@ -261,10 +226,6 @@ defmodule Responders.Html do
       end
 
       defoverridable [
-        session_create_success: 2,
-        session_create_error: 2,
-        session_create_error_locked: 2,
-        session_delete_success: 2,
         session_already_logged_in: 2,
 
         registration_create_success: 2,
