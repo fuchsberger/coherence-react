@@ -73,8 +73,6 @@ defmodule Coherence.Controller do
     Module.concat(Config.router(), Helpers)
   end
 
-
-
   @doc """
   Test if a datetime has expired.
 
@@ -176,32 +174,6 @@ defmodule Coherence.Controller do
   end
 
   @doc """
-  Login a user.
-
-  Logs in a user and redirects them to the session_create page.
-  """
-  @spec login_user(conn, schema, params) :: conn
-  def login_user(conn, user, _params \\ %{}) do
-     Config.auth_module
-     |> apply(Config.create_login, [conn, user, [id_key: Config.schema_key]])
-     |> TrackableService.track_login(user, Config.user_schema.trackable?, Config.user_schema.trackable_table?)
-  end
-
-  @doc """
-  Logout a user.
-
-  Logs out a user and redirects them to the session_delete page.
-  """
-  @spec logout_user(conn, Keyword.t) :: conn
-  def logout_user(conn, opts \\ []) do
-    user = Coherence.current_user conn
-    Config.auth_module
-    |> apply(Config.delete_login, [conn, [id_key: Config.schema_key] ++ opts])
-    |> TrackableService.track_logout(user, user.__struct__.trackable?, user.__struct__.trackable_table?)
-    |> RememberableService.delete_rememberable(user)
-  end
-
-  @doc """
   Deactivate a user.
 
   Removes all logged in sessions for a user.
@@ -214,5 +186,4 @@ defmodule Coherence.Controller do
   def schema_module(schema) do
     Module.concat [Config.module, Coherence, schema]
   end
-
 end

@@ -8,12 +8,10 @@ defmodule Coherence.SessionController do
   use Coherence.Config
 
   import Ecto.Query
-  import Coherence.{LockableService, TrackableService}
+  import Coherence.{LockableService, RememberableService, TrackableService}
   import Coherence.Schemas, only: [schema: 1]
   import Coherence.Authentication.Utils, only: [create_user_token: 2]
-  # import Coherence.Rememberable, only: [hash: 1, gen_cookie: 3]
 
-  # alias Coherence.{Rememberable}
   alias Coherence.{ConfirmableService, Messages}
   alias Coherence.Schemas
 
@@ -126,8 +124,12 @@ defmodule Coherence.SessionController do
   """
   @spec delete(conn, params) :: conn
   def delete(conn, _params) do
-    conn
-    |> logout_user
+    user_schema = Config.user_schema()
+    user = Coherence.current_user conn
+    Config.auth_module()
+    |> apply(Config.delete_login, [conn, [id_key: Config.schema_key] ++ opts])
+    |> track_logout(user, user_schema.trackable?, user_schema.trackable_table?)
+    |> delete_rememberable(user)
     |> put_status(204)
     |> json(%{})
   end
