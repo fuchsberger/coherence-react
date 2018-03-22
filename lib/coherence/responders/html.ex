@@ -26,10 +26,10 @@ defmodule Responders.Html do
       end
 
       def session_create_success(conn, opts \\ %{})
-      def session_create_success(conn, %{notice: notice, params: params}) do
+      def session_create_success(conn, %{notice: notice, path: path}) do
         conn
         |> put_flash(:notice, notice)
-        |> redirect_to(:session_create, params)
+        |> redirect([to: path)
       end
 
       def session_create_error_locked(conn, opts \\ %{})
