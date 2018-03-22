@@ -13,6 +13,7 @@ defmodule Coherence.SessionController do
   # import Coherence.Rememberable, only: [hash: 1, gen_cookie: 3]
 
   # alias Coherence.{Rememberable}
+  alias Coherence.Authentication.Session
   alias Coherence.{ConfirmableService, Messages}
   alias Coherence.Schemas
 
@@ -130,6 +131,7 @@ defmodule Coherence.SessionController do
     |> reset_failed_attempts(user, lockable?)
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
     |> save_rememberable(user, remember)
+    |> Session.call(Session.init([]))
     # conn
     # |> assign(:redirect, path)
     # |> put_flash(:notice, notice)
