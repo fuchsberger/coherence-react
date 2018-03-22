@@ -132,6 +132,7 @@ defmodule Coherence.SessionController do
     |> reset_failed_attempts(user, lockable?)
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
     |> save_rememberable(user, remember)
+    |> assign(Config.schema_key(), true)
     |> create_user_token(user, nil, Config.schema_key())
 
     IO.inspect conn.assigns
