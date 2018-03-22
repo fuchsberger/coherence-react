@@ -127,7 +127,7 @@ defmodule Coherence.SessionController do
     else
       conn
     end
-    Config.auth_module()
+    conn = Config.auth_module()
     |> apply(Config.create_login(), [conn, user, [id_key: Config.schema_key()]])
     |> reset_failed_attempts(user, lockable?)
     |> track_login(user, user_schema.trackable?(), user_schema.trackable_table?())
