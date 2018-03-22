@@ -146,7 +146,7 @@ defmodule Coherence.SessionController do
   def delete(conn, params) do
     conn
     |> logout_user
-    |> json(conn, %{})
+    |> json(%{})
     # |> respond_with(:session_delete_success, %{params: params})
   end
 
