@@ -60,8 +60,10 @@ defmodule Coherence.SessionController do
     else
       user_schema = Config.user_schema()
       lockable? = user_schema.lockable?()
+      login_field = Config.login_field()
+      login_field_str = to_string login_field
       remember = if Config.user_schema.rememberable?(), do: params["remember"], else: false
-      user = Schemas.get_by_user [{to_string(Config.login_field()), params["login"]}]
+      user = Schemas.get_by_user [{login_field, login}]
       if valid_user_login? user, params do
         if confirmed_access? user do
           do_lockable(conn, [user, user_schema, remember, lockable?],
