@@ -60,11 +60,9 @@ defmodule Coherence.SessionController do
     else
       user_schema = Config.user_schema()
       lockable? = user_schema.lockable?()
-      login_field = Config.login_field()
-      login = params["session"][to_string(login_field)]
       remember = if Config.user_schema.rememberable?(), do: params["remember"], else: false
-      user = Schemas.get_by_user [{login_field, login}]
-      if valid_user_login? user, params do
+      user = Schemas.get_by_user [{Config.login_field(),  params["login"]}]
+      if valid_user_login? user, params["password"] do
         if confirmed_access? user do
           do_lockable(conn, [user, user_schema, remember, lockable?],
             user_schema.lockable?() and user_schema.locked?(user))
@@ -89,7 +87,7 @@ defmodule Coherence.SessionController do
 
   defp valid_user_login?(nil, _params), do: false
   defp valid_user_login?(%{active: false}, _params), do: false
-  defp valid_user_login?(user, %{"session" => %{"password" => password}}) do
+  defp valid_user_login?(user, password) do
     user.__struct__.checkpw(password, Map.get(user, Config.password_hash()))
   end
   defp valid_user_login?(_user, _params), do: false
