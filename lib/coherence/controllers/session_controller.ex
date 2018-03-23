@@ -127,7 +127,7 @@ defmodule Coherence.SessionController do
     user_schema = Config.user_schema()
     user = Coherence.current_user conn
     Config.auth_module()
-    |> apply(Config.delete_login, [conn, [id_key: Config.schema_key] ++ opts])
+    |> apply(Config.delete_login(), [conn, [id_key: Config.schema_key]])
     |> track_logout(user, user_schema.trackable?, user_schema.trackable_table?)
     |> delete_rememberable(user)
     |> put_status(204)

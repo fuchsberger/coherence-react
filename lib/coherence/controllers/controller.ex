@@ -4,7 +4,7 @@ defmodule Coherence.Controller do
   """
   import Phoenix.Controller, only: [put_layout: 2, put_view: 2]
 
-  alias Coherence.{Config, RememberableService, TrackableService, Messages}
+  alias Coherence.{Config, Messages}
 
   require Logger
 
@@ -171,16 +171,6 @@ defmodule Coherence.Controller do
       {mod, fun} -> {mod, fun, [model, params, which]}
     end
     apply mod, fun, args
-  end
-
-  @doc """
-  Deactivate a user.
-
-  Removes all logged in sessions for a user.
-  """
-  @spec deactivate_user(conn) :: conn
-  def deactivate_user(conn) do
-    logout_user(conn, all: Coherence.current_user(conn))
   end
 
   def schema_module(schema) do
