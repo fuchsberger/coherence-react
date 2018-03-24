@@ -395,8 +395,8 @@ defmodule Coherence.Socket do
   defp return_ok(socket, data) when is_binary(data), do: {:reply, {:ok, %{ flash: data}}, socket}
   defp return_ok(socket, data) when is_map(data),    do: {:reply, {:ok, data}, socket}
 
-  defp return_error(socket, data) when is_binary(data), do: {:reply, {:ok, %{ flash: data}}, socket}
-  defp return_error(socket, data) when is_map(data),    do: {:reply, {:ok, data}, socket}
+  defp return_error(socket, data) when is_binary(data), do: {:reply, {:error, %{ flash: data}}, socket}
+  defp return_error(socket, data) when is_map(data),    do: {:reply, {:error, data}, socket}
 
   # formats user struct(s) and returns a (list of) map(s) with appropriate fields
   defp render_user(user), do: View.render_one(user, @user_view, "user.json")
