@@ -2,11 +2,12 @@ defmodule Coherence.Socket do
 
   use Coherence.Config
 
+  import Phoenix.Socket
   import Coherence.Authentication.Utils, only: [random_string: 1]
-  import Coherence.{Controller, EmailService, InvitationService,  LockableService,
+  import Coherence.{Config, Controller, EmailService, InvitationService,  LockableService,
     PasswordService, TrackableService}
 
-  alias Phoenix.View
+  alias Phoenix.{Token, View}
   alias Coherence.{ConfirmableService, Messages, Schemas}
 
   @endpoint Module.concat(Config.web_module, Endpoint)
@@ -14,6 +15,38 @@ defmodule Coherence.Socket do
 
   @type socket :: Phoenix.Socket.t
   @type params :: Map.t
+
+  @max_age rememberable_cookie_expire_hours() * 60 * 60 || ( 2 * 24 * 60 * 60 )
+
+  def handle_login(socket, %{"userToken" => userToken}) do
+    if not is_authenticated?(socket) do
+      case Token.verify(socket, "user socket", userToken, max_age: @max_age) do
+        {:ok, id} ->
+          current_user = render_user(id)
+          socket = assign(socket, :user, current_user)
+          resp = %{
+            admin: socket.assigns.user.admin,
+            user: %{
+              email: socket.assigns.user.email,
+              name:  socket.assigns.user.name
+            }
+          }
+          {:reply, {:ok, resp}, socket}
+        {:error, _reason} ->
+          return_error socket, "Invalid Token."
+      end
+    else
+      return_error socket, "Already authenticated."
+    end
+  end
+
+  def handle_logout(socket) do
+    if is_authenticated?(socket) do
+      {:reply, {:ok, %{}}, assign(socket, :user, nil)}
+    else
+      return_error socket, "You are not authenticated."
+    end
+  end
 
   @doc """
   Allows to block / unblock users
@@ -56,7 +89,8 @@ defmodule Coherence.Socket do
           {:ok, flash}    -> return_ok(socket, flash)
           {:error, flash} -> return_error(socket, flash)
         end
-      {:error, changeset} -> return_error socket, %{errors: error_map(changeset)}
+      {:error, changeset} ->
+        return_error socket, %{errors: error_map(changeset)}
     end
   end
 
@@ -351,7 +385,7 @@ defmodule Coherence.Socket do
     is_authenticated?(socket) and Enum.member? users, socket.assigns.user.id
   end
 
-  defp is_authenticated?(socket), do: !!Map.has_key?(socket.assigns, :user)
+  defp is_authenticated?(socket), do: !!Map.get(socket.assigns, :user)
 
   defp plural(integer) do
     if integer > 1, do: "s", else: ""
