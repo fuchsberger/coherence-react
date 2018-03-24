@@ -6,9 +6,11 @@ defmodule Coherence.Socket do
   import Coherence.{Controller, EmailService, InvitationService,  LockableService,
     PasswordService, TrackableService}
 
+  alias Phoenix.View
   alias Coherence.{ConfirmableService, Messages, Schemas}
 
   @endpoint Module.concat(Config.web_module, Endpoint)
+  @user_view Module.concat(Config.web_module, UserView)
 
   @type socket :: Phoenix.Socket.t
   @type params :: Map.t
@@ -26,7 +28,7 @@ defmodule Coherence.Socket do
       {:ok, changes } ->
         case Schemas.update_users(users, changes) do
           {count, users} ->
-            broadcast "users_updated", %{users: format_users(users)}
+            broadcast "users_updated", %{users: render_users(users)}
             if exclude_me do
               return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
             else
@@ -49,7 +51,7 @@ defmodule Coherence.Socket do
   def create_user(socket, params) do
     case Schemas.create_user params do
       {:ok, user} ->
-        broadcast "user_created", format_user(user)
+        broadcast "user_created", render_user(user)
         case ConfirmableService.send_confirmation(user) do
           {:ok, flash}    -> return_ok(socket, flash)
           {:error, flash} -> return_error(socket, flash)
@@ -71,7 +73,7 @@ defmodule Coherence.Socket do
           |> Schemas.update
           |> case do
               {:ok, user} ->
-                broadcast "users_updated", %{users: [format_user(user)]}
+                broadcast "users_updated", %{users: [render_user(user)]}
                 if params["password_current"], do:
                   track_password_reset(user, Config.user_schema.trackable_table?)
                 return_ok(socket, Messages.backend().account_updated_successfully())
@@ -95,7 +97,7 @@ defmodule Coherence.Socket do
 
     case Schemas.update_users(users, params) do
       {count, users} ->
-        broadcast "users_updated", %{users: format_users(users)}
+        broadcast "users_updated", %{users: render_users(users)}
         if exclude_me do
           return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
         else
@@ -172,7 +174,7 @@ defmodule Coherence.Socket do
             }, :confirmation)
           case Config.repo.update(changeset) do
             {:ok, user} ->
-              broadcast "users_updated", %{users: [format_user(user)]}
+              broadcast "users_updated", %{users: [render_user(user)]}
               return_ok(socket, Messages.backend().user_account_confirmed_successfully())
             {:error, _changeset} ->
               return_error(socket, Messages.backend().problem_confirming_user_account())
@@ -362,30 +364,9 @@ defmodule Coherence.Socket do
   defp return_error(socket, data) when is_binary(data), do: {:reply, {:ok, %{ flash: data}}, socket}
   defp return_error(socket, data) when is_map(data),    do: {:reply, {:ok, data}, socket}
 
-  # formats a user struct and returns a map with appropriate fields
-  defp format_user(u) do
-    user = %{
-      id: u.id,
-      email: u.email,
-      name: u.name,
-      inserted_at: NaiveDateTime.to_iso8601(u.inserted_at) <> "Z"
-    }
-    user = if administerable?(), do: Map.put(user, :admin, u.admin)
-    user = if blockable?(), do: Map.put(user, :blocked, !!u.blocked_at)
-    user = if confirmable?(), do: Map.put(user, :confirmed, !!u.confirmed_at)
-    user
-  end
-
-  defp format_users(users), do: Enum.map(users, fn u -> format_user(u) end)
-
-  defp administerable?(), do:
-    Config.has_option(:administerable) and Keyword.get(Config.opts, :administerable, true)
-
-  defp blockable?(), do:
-    Config.has_option(:blockable) and Keyword.get(Config.opts, :blockable, true)
-
-  defp confirmable?(), do:
-    Config.has_option(:confirmable) and Keyword.get(Config.opts, :confirmable, true)
+  # formats user struct(s) and returns a (list of) map(s) with appropriate fields
+  defp render_user(user), do: View.render_one(user, @user_view, "user.json")
+  defp render_users(users), do: View.render_many(users, @user_view, "user.json")
 
   # Generates a map with all invalid fields and their first error
   defp error_map(changeset), do:
