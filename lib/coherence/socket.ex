@@ -194,24 +194,23 @@ defmodule Coherence.Socket do
   """
   @spec handle_confirmation(socket, params) :: {:reply, {atom, Map.t}, socket}
   def handle_confirmation(socket, %{"token" => token}) do
-    user_schema = Config.user_schema
     case Schemas.get_by_user confirmation_token: token do
       nil ->
-        return_error(socket, Messages.backend().invalid_confirmation_token())
+        return_error socket, Messages.backend().invalid_confirmation_token()
       user ->
         if ConfirmableService.expired? user do
-          return_error(socket, Messages.backend().confirmation_token_expired())
+          return_error socket, Messages.backend().confirmation_token_expired()
         else
-          changeset = user_schema.changeset(user, %{
+          changeset = Config.user_schema.changeset(user, %{
             confirmation_token: nil,
-            confirmed_at: DateTime.utc_now,
-            }, :confirmation)
+            confirmed_at: NaiveDateTime.utc_now(),
+          })
           case Config.repo.update(changeset) do
             {:ok, user} ->
               broadcast "users_updated", %{users: [render_user(user)]}
-              return_ok(socket, Messages.backend().user_account_confirmed_successfully())
+              return_ok socket, Messages.backend().user_account_confirmed_successfully()
             {:error, _changeset} ->
-              return_error(socket, Messages.backend().problem_confirming_user_account())
+              return_error socket, Messages.backend().problem_confirming_user_account()
           end
         end
     end
