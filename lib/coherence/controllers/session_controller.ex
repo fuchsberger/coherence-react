@@ -78,7 +78,7 @@ defmodule Coherence.SessionController do
         |> track_failed_login(user, user_schema.trackable_table?())
         |> failed_login(user, lockable?)
         |> put_status(401)
-        |> json( %{ error: "credentials" })
+        |> json( %{ error: Messages.backend().invalid_email_or_password() })
       end
     end
   end
