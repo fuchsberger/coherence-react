@@ -11,7 +11,7 @@ defmodule Coherence.Socket do
   alias Coherence.{ConfirmableService, Messages, Schemas}
 
   @endpoint Module.concat(Config.web_module, Endpoint)
-  @schema Module.concat(Config.web_module, Schemas)
+  @schema Module.concat(Config.module, Schemas)
 
   @type socket :: Phoenix.Socket.t
   @type params :: Map.t
