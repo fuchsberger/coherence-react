@@ -108,7 +108,7 @@ defmodule Coherence.Socket do
           |> case do
               {:ok, user} ->
                 broadcast "users_updated", %{users: [render_user(user)]}
-                if params["password_current"], do:
+                if params["current_password"], do:
                   track_password_reset(user, Config.user_schema.trackable_table?)
                 return_ok(socket, Messages.backend().account_updated_successfully())
               {:error, changeset} ->
