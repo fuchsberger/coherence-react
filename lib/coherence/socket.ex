@@ -7,11 +7,11 @@ defmodule Coherence.Socket do
   import Coherence.{Config, Controller, EmailService, InvitationService,  LockableService,
     PasswordService, TrackableService}
 
-  alias Phoenix.{Token, View}
+  alias Phoenix.Token
   alias Coherence.{ConfirmableService, Messages, Schemas}
 
   @endpoint Module.concat(Config.web_module, Endpoint)
-  @user_view Module.concat(Config.web_module, UserView)
+  @schema Module.concat(Config.web_module, Schemas)
 
   @type socket :: Phoenix.Socket.t
   @type params :: Map.t
@@ -398,8 +398,8 @@ defmodule Coherence.Socket do
   defp return_error(socket, data) when is_map(data),    do: {:reply, {:error, data}, socket}
 
   # formats user struct(s) and returns a (list of) map(s) with appropriate fields
-  defp render_user(user), do: apply @user_view, :render_user, [ user ]
-  defp render_users(users), do: apply @user_view, :render_user, [ users ]
+  defp render_user(user), do: apply @schema, :render_user, [ user ]
+  defp render_users(users), do: apply @schema, :render_user, [ users ]
 
   # Generates a map with all invalid fields and their first error
   defp error_map(changeset), do:
