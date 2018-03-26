@@ -398,8 +398,8 @@ defmodule Coherence.Socket do
   defp return_error(socket, data) when is_map(data),    do: {:reply, {:error, data}, socket}
 
   # formats user struct(s) and returns a (list of) map(s) with appropriate fields
-  defp render_user(user), do: View.render_one(user, @user_view, "user.json")
-  defp render_users(users), do: View.render_many(users, @user_view, "user.json")
+  defp render_user(user), do: apply @user_view, :render_user, [ user ]
+  defp render_users(users), do: apply @user_view, :render_user, [ users ]
 
   # Generates a map with all invalid fields and their first error
   defp error_map(changeset), do:
