@@ -399,7 +399,7 @@ defmodule Coherence.Socket do
 
   # formats user struct(s) and returns a (list of) map(s) with appropriate fields
   defp render_user(user), do: apply @schema, :render_user, [ user ]
-  defp render_users(users), do: apply @schema, :render_user, [ users ]
+  defp render_users(users), do: apply @schema, :render_users, [ users ]
 
   # Generates a map with all invalid fields and their first error
   defp error_map(changeset), do:
