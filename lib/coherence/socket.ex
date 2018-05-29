@@ -3,6 +3,7 @@ defmodule Coherence.Socket do
   use Coherence.Config
 
   import Phoenix.Socket
+  import Coherence.Schemas
   import Coherence.Authentication.Utils, only: [random_string: 1]
   import Coherence.{Config, Controller, EmailService, InvitationService,  LockableService,
     PasswordService, TrackableService}
@@ -18,43 +19,13 @@ defmodule Coherence.Socket do
 
   @max_age rememberable_cookie_expire_hours() * 60 * 60 || ( 2 * 24 * 60 * 60 )
 
-  def handle_login(socket, %{"userToken" => userToken}) do
-    if not is_authenticated?(socket) do
-      case Token.verify(socket, "user socket", userToken, max_age: @max_age) do
-        {:ok, id} ->
-          current_user = render_user(id)
-          socket = assign(socket, :user, current_user)
-          resp = %{
-            admin: socket.assigns.user.admin,
-            user: %{
-              email: socket.assigns.user.email,
-              name:  socket.assigns.user.name
-            }
-          }
-          {:reply, {:ok, resp}, socket}
-        {:error, _reason} ->
-          return_error socket, "Invalid Token."
-      end
-    else
-      return_error socket, "Already authenticated."
-    end
-  end
-
-  def handle_logout(socket) do
-    if is_authenticated?(socket) do
-      {:reply, {:ok, %{}}, assign(socket, :user, nil)}
-    else
-      return_error socket, "You are not authenticated."
-    end
-  end
-
   @doc """
   Allows to block / unblock users
   """
   def block_users(socket, %{ "users" => users, "reason" => reason }) do
-    exclude_me = current_user_in_list?(users, socket)
+    exclude_me = Enum.member? users, user_id(socket)
     users = if exclude_me,
-      do: List.delete(users, socket.assigns.user.id),
+      do: List.delete(users, user_id(socket)),
       else: users
 
     case Config.user_schema.validate_blocked(reason) do
@@ -98,70 +69,23 @@ defmodule Coherence.Socket do
   Allows to change own password, email or name though the /settings page
   """
   def update_profile(socket, params) do
-    if is_authenticated?(socket) do
-      case Schemas.get_user(socket.assigns.user.id) do
-        nil ->
-          return_error(socket, Messages.backend().invalid_request())
-        user ->
-          Config.user_schema.changeset(user, params, :settings)
-          |> Schemas.update
-          |> case do
-              {:ok, user} ->
-                broadcast "users_updated", %{users: [render_user(user)]}
-                if params["current_password"], do:
-                  track_password_reset(user, Config.user_schema.trackable_table?)
-                return_ok(socket, Messages.backend().account_updated_successfully())
-              {:error, changeset} ->
-                return_error socket, %{errors: error_map(changeset)}
-            end
-      end
-    else
-      return_error socket, Messages.backend().invalid_request()
+    case Schemas.get_user(user_id(socket)) do
+      nil ->
+        return_error(socket, Messages.backend().invalid_request())
+      user ->
+        Config.user_schema.changeset(user, params, :settings)
+        |> Schemas.update
+        |> case do
+            {:ok, user} ->
+              broadcast "users_updated", %{users: [render_user(user)]}
+              if params["current_password"], do:
+                track_password_reset(user, Config.user_schema.trackable_table?)
+              return_ok(socket, Messages.backend().account_updated_successfully())
+            {:error, changeset} ->
+              return_error socket, %{errors: error_map(changeset)}
+          end
     end
   end
-
-  @doc """
-  Allows to change users, given a list of users and a list of parameters
-  """
-  def update_users(socket, %{ "users" => users, "params" => params }) do
-    exclude_me = current_user_in_list?(users, socket)
-    users = if exclude_me,
-      do: List.delete(users, socket.assigns.user.id),
-      else: users
-
-    case Schemas.update_users(users, params) do
-      {count, users} ->
-        broadcast "users_updated", %{users: render_users(users)}
-        if exclude_me do
-          return_ok socket, "You have successfully updated #{count} users! No changes were made on your account."
-        else
-          return_ok socket, "You have successfully updated #{count} users!"
-        end
-      _ ->
-        return_error socket, "Something went wrong while updating a user!"
-    end
-  end
-
-  @doc """
-  Deletes users by a list of userIDs and (optionally) broadcasts back to all admins
-  """
-  def delete_users(socket, users) do
-    exclude_me = current_user_in_list?(users, socket)
-    users = if exclude_me, do: List.delete(users, socket.assigns.user.id), else: users
-
-    if current_user_in_list?(users, socket) do
-      return_error socket, "You cannot delete yourself. Operation cancelled."
-    else
-      case Schemas.delete_users users do
-        {count, users} ->
-          broadcast "users_deleted", %{users: Enum.map(users, fn(v) -> v.id end)}
-          return_ok socket, "Successfully deleted #{count} user#{plural(count)}!"
-        nil ->
-          return_error socket, "Something went wrong while deleting users!"
-      end
-    end
-  end
-
 
   @doc """
   Resends a confirmation email with a new token to the account with given email
@@ -380,11 +304,7 @@ defmodule Coherence.Socket do
     apply @endpoint, :broadcast, [ Config.feedback_channel, event, data ]
   end
 
-  defp current_user_in_list?(users, socket) do
-    is_authenticated?(socket) and Enum.member? users, socket.assigns.user.id
-  end
-
-  defp is_authenticated?(socket), do: !!Map.get(socket.assigns, :user)
+  defp user_id(socket), do: Map.get(socket.assigns, :user_id, nil)
 
   defp plural(integer) do
     if integer > 1, do: "s", else: ""
