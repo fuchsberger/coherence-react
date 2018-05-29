@@ -2,13 +2,10 @@ defmodule Coherence.Socket do
 
   use Coherence.Config
 
-  import Phoenix.Socket
-  import Coherence.Schemas
   import Coherence.Authentication.Utils, only: [random_string: 1]
-  import Coherence.{Config, Controller, EmailService, InvitationService,  LockableService,
+  import Coherence.{Controller, EmailService, InvitationService,  LockableService,
     PasswordService, TrackableService}
 
-  alias Phoenix.Token
   alias Coherence.{ConfirmableService, Messages, Schemas}
 
   @endpoint Module.concat(Config.web_module, Endpoint)
@@ -16,8 +13,6 @@ defmodule Coherence.Socket do
 
   @type socket :: Phoenix.Socket.t
   @type params :: Map.t
-
-  @max_age rememberable_cookie_expire_hours() * 60 * 60 || ( 2 * 24 * 60 * 60 )
 
   @doc """
   Allows to block / unblock users
@@ -305,10 +300,6 @@ defmodule Coherence.Socket do
   end
 
   defp user_id(socket), do: Map.get(socket.assigns, :user_id, nil)
-
-  defp plural(integer) do
-    if integer > 1, do: "s", else: ""
-  end
 
   # return flash message or map
   defp return_ok(socket, data) when is_binary(data), do: {:reply, {:ok, %{ flash: data}}, socket}
